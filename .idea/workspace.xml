@@ -4,13 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="913657d7-b6c6-4fdc-a3fc-eb60c83390a1" name="更改" comment="">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+    <list default="true" id="913657d7-b6c6-4fdc-a3fc-eb60c83390a1" name="更改" comment="项目初始化">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/exception/GlobalExceptionHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectId" id="3Lg51hUhnh3HnKEPJJjRHmcNB9E" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -20,12 +38,126 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "master",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "模块",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "spring.configuration.checksum": "6702b7d132276d47458524ace89acdea",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "mysql"
+    ]
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.kk.rbac.mapper" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.RbacSystemApplication">
+    <configuration name="EquipmentServiceTest.shouldReturnExistingEquipment" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.kk.rbac.service" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.service.EquipmentServiceTest" />
+      <option name="METHOD_NAME" value="shouldReturnExistingEquipment" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="EquipmentServiceTest.shouldThrowWhenEquipmentDoesNotExist" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.kk.rbac.service" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.service.EquipmentServiceTest" />
+      <option name="METHOD_NAME" value="shouldThrowWhenEquipmentDoesNotExist" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="PasswordEncoderTest.shouldMatchOnlyCorrectPassword" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.security.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.kk.rbac.security" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.security.PasswordEncoderTest" />
+      <option name="METHOD_NAME" value="shouldMatchOnlyCorrectPassword" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SysUserMapperTest.shouldFindUserByAccount" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.mapper.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.kk.rbac.mapper" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.mapper.SysUserMapperTest" />
+      <option name="METHOD_NAME" value="shouldFindUserByAccount" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RbacSystemApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.kk.rbac.RbacSystemApplication" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Spring Boot.RbacSystemApplication" />
+        <item itemvalue="JUnit.SysUserMapperTest.shouldFindUserByAccount" />
+        <item itemvalue="JUnit.PasswordEncoderTest.shouldMatchOnlyCorrectPassword" />
+        <item itemvalue="JUnit.EquipmentServiceTest.shouldReturnExistingEquipment" />
+        <item itemvalue="JUnit.EquipmentServiceTest.shouldThrowWhenEquipmentDoesNotExist" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
@@ -34,8 +166,57 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1793862659248</updated>
-      <workItem from="1793862660272" duration="1000" />
+      <workItem from="1793862660272" duration="6371000" />
+      <workItem from="1793946778508" duration="1654000" />
+      <workItem from="1793951411125" duration="916000" />
+      <workItem from="1794132829008" duration="3277000" />
+      <workItem from="1794184023660" duration="345000" />
+      <workItem from="1794184377340" duration="3037000" />
+      <workItem from="1794189111705" duration="10765000" />
     </task>
+    <task id="LOCAL-00001" summary="项目初始化">
+      <option name="closed" value="true" />
+      <created>1793951694817</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1793951694817</updated>
+    </task>
+    <task id="LOCAL-00002" summary="项目初始化">
+      <option name="closed" value="true" />
+      <created>1793952205933</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1793952205933</updated>
+    </task>
+    <task id="LOCAL-00003" summary="项目初始化">
+      <option name="closed" value="true" />
+      <created>1793952303949</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1793952303949</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="项目初始化" />
+    <option name="LAST_COMMIT_MESSAGE" value="项目初始化" />
   </component>
 </project>

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -68,5 +69,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(400, "请求参数类型错误"));
+    }
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException exception
+    ) {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .headers(exception.getHeaders())
+                .body(ApiResponse.error(
+                        HttpStatus.METHOD_NOT_ALLOWED.value(),
+                        "请求方法不支持"
+                ));
     }
 }
