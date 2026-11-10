@@ -5,11 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="913657d7-b6c6-4fdc-a3fc-eb60c83390a1" name="更改" comment="项目初始化">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/config/JwtConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/config/JwtProperties.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/JwtService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/dto/LoginResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,35 +39,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "模块",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "spring.configuration.checksum": "6702b7d132276d47458524ace89acdea",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;spring.boot&quot;,
+    &quot;spring.configuration.checksum&quot;: &quot;6702b7d132276d47458524ace89acdea&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="com.kk.rbac.mapper" />
@@ -87,17 +91,17 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="EquipmentServiceTest.shouldThrowWhenEquipmentDoesNotExist" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="JwtServiceTest.shouldGenerateTokenAndVerifyItsSignature" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="rbac-system" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.kk.rbac.service.*" />
+          <option name="PATTERN" value="com.kk.rbac.security.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.kk.rbac.service" />
-      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.service.EquipmentServiceTest" />
-      <option name="METHOD_NAME" value="shouldThrowWhenEquipmentDoesNotExist" />
+      <option name="PACKAGE_NAME" value="com.kk.rbac.security" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.security.JwtServiceTest" />
+      <option name="METHOD_NAME" value="shouldGenerateTokenAndVerifyItsSignature" />
       <option name="TEST_OBJECT" value="method" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -136,6 +140,9 @@
       </method>
     </configuration>
     <configuration name="RbacSystemApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
+      <envs>
+        <env name="JWT_SECRET_BASE64" value="a/eWfuaUhpazqys+khyh8EmJZUjQXabohpbf1ooYhrw=" />
+      </envs>
       <module name="rbac-system" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.kk.rbac.RbacSystemApplication" />
       <extension name="coverage">
@@ -148,17 +155,27 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="JUnit.JwtServiceTest.shouldGenerateTokenAndVerifyItsSignature" />
+      <item itemvalue="JUnit.EquipmentServiceTest.shouldReturnExistingEquipment" />
+      <item itemvalue="JUnit.PasswordEncoderTest.shouldMatchOnlyCorrectPassword" />
+      <item itemvalue="JUnit.SysUserMapperTest.shouldFindUserByAccount" />
+      <item itemvalue="Spring Boot.RbacSystemApplication" />
+    </list>
     <recent_temporary>
       <list>
         <item itemvalue="Spring Boot.RbacSystemApplication" />
+        <item itemvalue="JUnit.JwtServiceTest.shouldGenerateTokenAndVerifyItsSignature" />
         <item itemvalue="JUnit.SysUserMapperTest.shouldFindUserByAccount" />
         <item itemvalue="JUnit.PasswordEncoderTest.shouldMatchOnlyCorrectPassword" />
         <item itemvalue="JUnit.EquipmentServiceTest.shouldReturnExistingEquipment" />
-        <item itemvalue="JUnit.EquipmentServiceTest.shouldThrowWhenEquipmentDoesNotExist" />
       </list>
     </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="SpringBootOptions">
+    <option name="showAdditionalConfigNotification" value="false" />
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="默认任务">
       <changelist id="913657d7-b6c6-4fdc-a3fc-eb60c83390a1" name="更改" comment="" />
@@ -172,7 +189,9 @@
       <workItem from="1794132829008" duration="3277000" />
       <workItem from="1794184023660" duration="345000" />
       <workItem from="1794184377340" duration="3037000" />
-      <workItem from="1794189111705" duration="10765000" />
+      <workItem from="1794189111705" duration="13795000" />
+      <workItem from="1794225645643" duration="3780000" />
+      <workItem from="1794269903827" duration="1443000" />
     </task>
     <task id="LOCAL-00001" summary="项目初始化">
       <option name="closed" value="true" />
@@ -218,5 +237,9 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="项目初始化" />
     <option name="LAST_COMMIT_MESSAGE" value="项目初始化" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
