@@ -1,6 +1,7 @@
 package com.kk.rbac.service;
 
 import com.kk.rbac.config.JwtProperties;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class JwtService {
     private final SecretKey jwtSigningKey;
     private final JwtProperties properties;
 
-    public String generateToken(Integer userId) {
+    public String createToken(Integer userId) {//生成JWT token
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("用户ID必须为正数");
         }
@@ -32,5 +33,12 @@ public class JwtService {
                 .expiration(Date.from(expiresAt))
                 .signWith(jwtSigningKey, Jwts.SIG.HS256)
                 .compact();
+    }
+    public Claims parseToken(String token) {//解析JWT token
+        return Jwts.parser()
+                .verifyWith(jwtSigningKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

@@ -28,7 +28,7 @@ public class AuthController {
                 loginRequest.getAccount(),
                 loginRequest.getPassword()
         );
-        String accessToken= jwtService.generateToken(user.getId());
+        String accessToken= jwtService.createToken(user.getId());
 
         LoginResponse response = new LoginResponse(
                 user.getId(),
