@@ -1,5 +1,6 @@
 package com.kk.rbac.service;
 
+import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.mapper.EquipmentMapper;
@@ -14,7 +15,7 @@ public class EquipmentService {
     public Equipment getEquipmentById(Integer id) {
         Equipment equipment=equipmentMapper.selectById(id);
         if (equipment==null){
-            throw new BusinessException(404,"设备不存在");
+            throw new BusinessException(404, EquipmentConstants.EQUIPMENT_NOT_EXIST);
         }
         return equipment;
     }

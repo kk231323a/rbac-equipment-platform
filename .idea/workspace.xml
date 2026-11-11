@@ -5,13 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="913657d7-b6c6-4fdc-a3fc-eb60c83390a1" name="更改" comment="项目初始化">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/config/SecurityConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/security/AuthEntryPoint.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/security/JwtAuthFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/constants/EquipmentConstants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/common/constants/PermissionConstants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/security/AuthDeniedHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/PermissionService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/mapper/SysUserMapper.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/controller/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/JwtService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/JwtService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/mapper/SysUserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/mapper/SysUserMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/security/JwtAuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/security/JwtAuthFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/EquipmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/kk/rbac/service/EquipmentService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +25,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Interface" />
+        <option value="Enum" />
         <option value="Class" />
       </list>
     </option>
@@ -74,22 +78,6 @@
     </key>
   </component>
   <component name="RunManager" selected="Spring Boot.RbacSystemApplication">
-    <configuration name="AuthEntryPointTest.shouldWriteUnauthorizedJsonResponse" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="rbac-system" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.kk.rbac.security.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.kk.rbac.security" />
-      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.security.AuthEntryPointTest" />
-      <option name="METHOD_NAME" value="shouldWriteUnauthorizedJsonResponse" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="JwtAuthFilterTest.shouldExposeAuthenticatedUserToFollowingChain" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="rbac-system" />
       <extension name="coverage">
@@ -122,18 +110,42 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="JwtServiceTest.shouldRejectExpiredToken" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="RedisConnectionTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="rbac-system" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="com.kk.rbac.security.*" />
+          <option name="PATTERN" value="com.kk.rbac.redis.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
-      <option name="PACKAGE_NAME" value="com.kk.rbac.security" />
-      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.security.JwtServiceTest" />
-      <option name="METHOD_NAME" value="shouldRejectExpiredToken" />
+      <option name="PACKAGE_NAME" value="com.kk.rbac.redis" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.redis.RedisConnectionTest" />
+      <option name="METHOD_NAME" value="" />
+      <option name="TEST_OBJECT" value="class" />
+      <envs>
+        <env name="JWT_SECRET_BASE64" value="GGP6/nxGINa3BsTVDl7eRRu0L8u9Cfw5ThHnqR2QyRM\=" />
+        <env name="REDIS_PASSWORD" value="root" />
+      </envs>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="RedisConnectionTest.shouldPingRedis" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="rbac-system" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.kk.rbac.redis.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.kk.rbac.redis" />
+      <option name="MAIN_CLASS_NAME" value="com.kk.rbac.redis.RedisConnectionTest" />
+      <option name="METHOD_NAME" value="shouldPingRedis" />
       <option name="TEST_OBJECT" value="method" />
+      <envs>
+        <env name="JWT_SECRET_BASE64" value="GGP6/nxGINa3BsTVDl7eRRu0L8u9Cfw5ThHnqR2QyRM=" />
+        <env name="REDIS_PASSWORD" value="root" />
+      </envs>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -141,6 +153,7 @@
     <configuration name="RbacSystemApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
       <envs>
         <env name="JWT_SECRET_BASE64" value="GGP6/nxGINa3BsTVDl7eRRu0L8u9Cfw5ThHnqR2QyRM=" />
+        <env name="REDIS_PASSWORD" value="root" />
       </envs>
       <module name="rbac-system" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.kk.rbac.RbacSystemApplication" />
@@ -155,19 +168,19 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="JUnit.AuthEntryPointTest.shouldWriteUnauthorizedJsonResponse" />
+      <item itemvalue="JUnit.RedisConnectionTest" />
+      <item itemvalue="JUnit.RedisConnectionTest.shouldPingRedis" />
       <item itemvalue="JUnit.JwtAuthFilterTest.shouldExposeAuthenticatedUserToFollowingChain" />
       <item itemvalue="JUnit.JwtAuthFilterTest.shouldRejectInvalidTokenWithoutContinuingChain" />
-      <item itemvalue="JUnit.JwtServiceTest.shouldRejectExpiredToken" />
       <item itemvalue="Spring Boot.RbacSystemApplication" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Spring Boot.RbacSystemApplication" />
+        <item itemvalue="JUnit.RedisConnectionTest.shouldPingRedis" />
+        <item itemvalue="JUnit.RedisConnectionTest" />
         <item itemvalue="JUnit.JwtAuthFilterTest.shouldExposeAuthenticatedUserToFollowingChain" />
         <item itemvalue="JUnit.JwtAuthFilterTest.shouldRejectInvalidTokenWithoutContinuingChain" />
-        <item itemvalue="JUnit.AuthEntryPointTest.shouldWriteUnauthorizedJsonResponse" />
-        <item itemvalue="JUnit.JwtServiceTest.shouldRejectExpiredToken" />
       </list>
     </recent_temporary>
   </component>
@@ -190,7 +203,8 @@
       <workItem from="1794184377340" duration="3037000" />
       <workItem from="1794189111705" duration="13795000" />
       <workItem from="1794225645643" duration="3780000" />
-      <workItem from="1794269903827" duration="14422000" />
+      <workItem from="1794269903827" duration="22392000" />
+      <workItem from="1794355898600" duration="5103000" />
     </task>
     <task id="LOCAL-00001" summary="项目初始化">
       <option name="closed" value="true" />

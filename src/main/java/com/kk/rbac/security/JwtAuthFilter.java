@@ -1,6 +1,7 @@
 package com.kk.rbac.security;
 
 import com.kk.rbac.service.JwtService;
+import com.kk.rbac.service.PermissionService;
 import com.kk.rbac.service.TokenRevocationService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -9,15 +10,16 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -25,13 +27,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final AuthEntryPoint authEntryPoint;
     private final TokenRevocationService tokenRevocationService;
+    private final PermissionService permissionService;
 
 
     @Override
     protected void doFilterInternal(//仅对token不合法进行处理，不携带token或合法的token不在此处处理，由SpringSecurity的认证机制处理
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
+                                    HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain
     ) throws ServletException, IOException {
         //从这次请求中，读取名为 Authorization 的请求头，即获取jwt
         String authorization = request.getHeader("Authorization");
@@ -48,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         //去掉bearer前缀
         String token = authorization.substring(bearerPrefix.length()).trim();
         Claims claims;
-        int  userId;
+        int userId;
 //判断token是否有效
         try {
             //解析token，获取claims
@@ -89,6 +92,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             );
             return;
         }
+//        查询用户权限
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+//        将用户权限代码转换为Spring Security的SimpleGrantedAuthority对象，并添加到权限列表中
+        try {
+            List<String> permissionCodes =
+                    permissionService.getPermissionCodes(userId);
+
+            for (String code : permissionCodes) {
+                authorities.add(new SimpleGrantedAuthority(code));
+            }
+        } catch (DataAccessException exception) {
+            logger.error("查询用户权限失败", exception);
+            SecurityContextHolder.clearContext();
+            authEntryPoint.serviceUnavailable(response);
+            return;
+        }
+
 //        创建一个登录身份对象，包含用户ID、JWT ID和过期时间
         LoginPrincipal principal = new LoginPrincipal(
                 userId,
@@ -101,7 +121,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 new UsernamePasswordAuthenticationToken(
                         principal,
                         null,
-                        List.of()
+                        authorities
                 );
 //        创建用户上下文
         SecurityContext context = SecurityContextHolder.createEmptyContext();
