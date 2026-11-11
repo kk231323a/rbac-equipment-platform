@@ -36,4 +36,17 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败�
                 ApiResponse.error(401, "未登录或登录已失效")//要写入响应体的内容，这里是一个错误响应对象，包含状态码和错误信息
         );
     }
+
+    public void serviceUnavailable(
+            HttpServletResponse response
+    ) throws IOException {
+        response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
+        objectMapper.writeValue(
+                response.getWriter(),
+                ApiResponse.error(503, "认证服务暂不可用，请稍后重试")
+        );
+    }
 }

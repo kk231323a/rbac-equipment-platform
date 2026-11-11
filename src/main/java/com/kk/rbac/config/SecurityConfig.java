@@ -3,6 +3,7 @@ package com.kk.rbac.config;
 import com.kk.rbac.security.AuthEntryPoint;
 import com.kk.rbac.security.JwtAuthFilter;
 import com.kk.rbac.service.JwtService;
+import com.kk.rbac.service.TokenRevocationService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,7 +18,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthEntryPoint authEntryPoint,
-            JwtService jwtService
+            JwtService jwtService,
+            TokenRevocationService tokenRevocationService
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -38,7 +40,7 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authEntryPoint)
                 )
                 .addFilterBefore(
-                        new JwtAuthFilter(jwtService, authEntryPoint),
+                        new JwtAuthFilter(jwtService, authEntryPoint,tokenRevocationService),
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .build();
