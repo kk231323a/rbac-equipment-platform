@@ -30,14 +30,7 @@ public class EquipmentController {
         return ApiResponse.success(equipment);
     }
 
-    @PostMapping("/borrow")
-    public ApiResponse<Integer> borrowEquipment(@RequestParam(value = "deviceId",required = false) Integer deviceId,
-                                                @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
-        Integer borrowerId = loginPrincipal.userId();
-        log.info("设备借用申请，设备ID: {}, 借用人ID: {}", deviceId, borrowerId);
-        Integer requestId = borrowRequestService.create(deviceId, borrowerId);
-        return ApiResponse.success(requestId);
-    }
+
     @GetMapping("/borrowedList")
     public ApiResponse<List<BorrowRequest>> listMyBorrowRequests(@AuthenticationPrincipal LoginPrincipal loginPrincipal) {
         Integer borrowerId = loginPrincipal.userId();
