@@ -46,6 +46,10 @@ public class SecurityConfig {
                                 "/api/equipment/**"
                         )
                         .hasAnyAuthority(PermissionConstants.EQUIPMENT_READ)
+                        .requestMatchers(//需要borrow:create权限的接口
+                                HttpMethod.POST,
+                                "/api/equipment/borrow")
+                        .hasAuthority(PermissionConstants.BORROW_CREATE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
