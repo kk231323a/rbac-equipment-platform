@@ -41,6 +41,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/health"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/equipment/borrowedList")//允许借用人查看自己的借用申请列表
+                        .authenticated()
                         .requestMatchers(//需要equipment:read权限的接口
                                    HttpMethod.GET,
                                 "/api/equipment/**"

@@ -1,5 +1,6 @@
 package com.kk.rbac.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.kk.rbac.common.constants.BorrowRequestConstants;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
@@ -8,6 +9,8 @@ import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.mapper.BorrowRequestMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class BorrowRequestService {
@@ -32,5 +35,12 @@ public class BorrowRequestService {
             throw new BusinessException(500,"创建借用申请失败");
         }
         return borrowRequest.getId();
+    }
+    public List<BorrowRequest> listMine(Integer borrowerId){
+        LambdaQueryWrapper<BorrowRequest> query=new LambdaQueryWrapper<>();
+        query.eq(BorrowRequest::getBorrowerId,borrowerId);
+        query.orderByDesc(BorrowRequest::getCreateTime);
+        query.orderByDesc(BorrowRequest::getId);
+        return borrowRequestMapper.selectList(query);
     }
 }

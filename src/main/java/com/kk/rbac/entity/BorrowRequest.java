@@ -23,7 +23,7 @@ public class BorrowRequest {
 
     private LocalDateTime createTime;
     private LocalDateTime approveTime;
-    private LocalDateTime dueTime;
+    private LocalDateTime dueTime;//应还时间
     private LocalDateTime borrowTime;
     private LocalDateTime returnTime;
     private LocalDateTime updateTime;
