@@ -29,7 +29,7 @@ public class EquipmentService {
         return equipment;
     }
 
-    public void reserve(Integer deviceId) {
+    public void reserve(Integer deviceId) {//可用状态转为预留
         if (deviceId == null || deviceId <= 0) {
             throw new BusinessException(400, "设备ID不合法");
         }
@@ -43,4 +43,30 @@ public class EquipmentService {
         }
     }
 
+    public void borrow(Integer deviceId) {//预留状态转为借用
+        if (deviceId == null || deviceId <= 0) {
+            throw new BusinessException(400, "设备ID不合法");
+        }
+        LambdaUpdateWrapper<Equipment> update = new LambdaUpdateWrapper<Equipment>()
+                .eq(Equipment::getId, deviceId)
+                .eq(Equipment::getStatus, EquipmentConstants.RESERVED)
+                .set(Equipment::getStatus, EquipmentConstants.BORROWED);
+        int rows = equipmentMapper.update(null, update);//乐观锁借用
+        if (rows != 1) {
+            throw new BusinessException(409, "设备当前不可借用");
+        }
+    }
+    public void returnEquipment(Integer deviceId){//借用状态转为可用//归还设备
+        if (deviceId == null || deviceId <= 0) {
+            throw new BusinessException(400, "设备ID不合法");
+        }
+        LambdaUpdateWrapper<Equipment> update = new LambdaUpdateWrapper<Equipment>()
+                .eq(Equipment::getId, deviceId)
+                .eq(Equipment::getStatus, EquipmentConstants.BORROWED)
+                .set(Equipment::getStatus, EquipmentConstants.AVAILABLE);
+        int rows = equipmentMapper.update(null, update);//乐观锁归还
+        if (rows != 1) {
+            throw new BusinessException(409, "设备当前不可归还");
+        }
+    }
 }

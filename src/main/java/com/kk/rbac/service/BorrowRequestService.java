@@ -84,4 +84,77 @@ public class BorrowRequestService {
             throw new BusinessException(409, "借用申请已处理");
         }
     }
+
+    public void reject(Integer requestId, Integer approverId) {
+        if (requestId == null || requestId <= 0) {
+            throw new BusinessException(400, "申请ID不合法");
+        }
+        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
+        if (borrowRequest == null) {
+            throw new BusinessException(404, BorrowRequestConstants.BORROW_REQUEST_NOT_EXIST);
+        }
+        if (!borrowRequest.getStatus().equals(BorrowRequestConstants.PENDING)) {
+            throw new BusinessException(409, "借用申请已处理");
+        }
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
+                .eq(BorrowRequest::getStatus, BorrowRequestConstants.PENDING)
+                .set(BorrowRequest::getStatus, BorrowRequestConstants.REJECTED)
+                .set(BorrowRequest::getApproverId, approverId)
+                .set(BorrowRequest::getApproveTime, LocalDateTime.now());
+        int result = borrowRequestMapper.update(null,updateWrapper);
+        if (result != 1) {
+            throw new BusinessException(409, "借用申请已处理");
+        }
+    }
+
+    @Transactional
+    public void receive(Integer requestId, Integer receiverId) {
+        if (requestId == null || requestId <= 0) {
+            throw new BusinessException(400, "申请ID不合法");
+        }
+        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
+        if (borrowRequest == null) {
+            throw new BusinessException(404, BorrowRequestConstants.BORROW_REQUEST_NOT_EXIST);
+        }
+        if (!borrowRequest.getStatus().equals(BorrowRequestConstants.APPROVED)) {
+            throw new BusinessException(409, "借用申请未批准");
+        }
+        if(!borrowRequest.getBorrowerId().equals(receiverId)){
+            throw new BusinessException(403, "不能领取他人申请的设备");
+        }
+        equipmentService.borrow(borrowRequest.getDeviceId());
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
+                .eq(BorrowRequest::getStatus, BorrowRequestConstants.APPROVED)
+                .set(BorrowRequest::getStatus, BorrowRequestConstants.RECEIVED)
+                .set(BorrowRequest::getBorrowTime, LocalDateTime.now());
+        int result = borrowRequestMapper.update(null,updateWrapper);
+        if (result != 1) {
+            throw new BusinessException(409, "借用申请已处理");
+        }
+    }
+    @Transactional
+    public void returnEquipment(Integer requestId, Integer returnerId) {
+        if (requestId == null || requestId <= 0) {
+            throw new BusinessException(400, "申请ID不合法");
+        }
+        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
+        if (borrowRequest == null) {
+            throw new BusinessException(404, BorrowRequestConstants.BORROW_REQUEST_NOT_EXIST);
+        }
+        if (!borrowRequest.getStatus().equals(BorrowRequestConstants.RECEIVED)) {
+            throw new BusinessException(409, "借用申请未领取");
+        }
+        equipmentService.returnEquipment(borrowRequest.getDeviceId());
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
+                .eq(BorrowRequest::getStatus, BorrowRequestConstants.RECEIVED)
+                .set(BorrowRequest::getReturnTime, LocalDateTime.now())
+                .set(BorrowRequest::getStatus, BorrowRequestConstants.RETURNED);
+        int result = borrowRequestMapper.update(null,updateWrapper);
+        if (result != 1) {
+            throw new BusinessException(409, "借用申请已处理");
+        }
+    }
 }

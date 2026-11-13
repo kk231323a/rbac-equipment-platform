@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,6 +31,7 @@ public class BorrowController {
         return ApiResponse.success(requestId);
     }
 
+
     @PostMapping("/approve")
     public ApiResponse<Void> approveBorrowRequest(@RequestParam(value = "requestId", required = false) Integer requestId,
                                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueTime,
@@ -37,6 +39,30 @@ public class BorrowController {
         Integer approverId = loginPrincipal.userId();
         log.info("设备借用申请审批，申请ID: {}, 审批人ID: {}, 应还时间:{}", requestId, approverId, dueTime);
         borrowRequestService.approve(requestId, approverId, dueTime);
+        return ApiResponse.success();
+    }
+    @PostMapping("/reject")
+    public ApiResponse<Void> rejectBorrowRequest(@RequestParam(value = "requestId", required = false) Integer requestId,
+                                                 @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
+        Integer approverId = loginPrincipal.userId();
+        log.info("设备借用申请拒绝，申请ID: {}, 审批人ID: {}", requestId, approverId);
+        borrowRequestService.reject(requestId, approverId);
+        return ApiResponse.success();
+    }
+    @PostMapping("/receive")
+    public ApiResponse<Void> receiveEquipment(@RequestParam(value = "requestId", required = false) Integer requestId,
+                                          @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
+        Integer receiverId = loginPrincipal.userId();
+        log.info("设备借用申请确认领取，申请ID: {}, 收货人ID: {}", requestId, receiverId);
+        borrowRequestService.receive(requestId, receiverId);
+        return ApiResponse.success();
+    }
+    @PostMapping("/return")
+    public ApiResponse<Void> returnEquipment(@RequestParam(value = "requestId", required = false) Integer requestId,
+                                             @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
+        Integer returnerId = loginPrincipal.userId();
+        log.info("设备归还申请，申请ID: {}, 归还人ID: {}", requestId, returnerId);
+        borrowRequestService.returnEquipment(requestId, returnerId);
         return ApiResponse.success();
     }
 }
