@@ -7,6 +7,7 @@ public final class BorrowRequestConstants {
     public static final String REJECTED = "rejected";
     public static final String RECEIVED = "received";
     public static final String RETURNED = "returned";
+    public static final String CANCEL = "cancel";
 
 
     private BorrowRequestConstants() {

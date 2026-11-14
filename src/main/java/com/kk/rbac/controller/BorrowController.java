@@ -1,6 +1,7 @@
 package com.kk.rbac.controller;
 
 import com.kk.rbac.common.ApiResponse;
+import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.BorrowRequestService;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,14 @@ public class BorrowController {
         Integer requestId = borrowRequestService.create(deviceId, borrowerId);
         return ApiResponse.success(requestId);
     }
+    @PostMapping("/request/cancel")
+    public ApiResponse<Void> cancelBorrowRequest(@RequestParam(value = "requestId", required = false) Integer requestId,
+                                                 @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
+        Integer borrowerId = loginPrincipal.userId();
+        log.info("设备借用申请取消，申请ID: {}, 借用人ID: {}", requestId, borrowerId);
+        borrowRequestService.cancel(requestId, borrowerId);
+        return ApiResponse.success();
+    }
 
 
     @PostMapping("/approve")
@@ -54,7 +63,9 @@ public class BorrowController {
                                           @AuthenticationPrincipal LoginPrincipal loginPrincipal) {
         Integer receiverId = loginPrincipal.userId();
         log.info("设备借用申请确认领取，申请ID: {}, 收货人ID: {}", requestId, receiverId);
-        borrowRequestService.receive(requestId, receiverId);
+        if(!borrowRequestService.receive(requestId, receiverId)){
+            throw new BusinessException(409,"已超过领取期限，申请已取消");
+        }
         return ApiResponse.success();
     }
     @PostMapping("/return")

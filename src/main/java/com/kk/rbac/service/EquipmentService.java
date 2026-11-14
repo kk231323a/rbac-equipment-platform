@@ -69,4 +69,17 @@ public class EquipmentService {
             throw new BusinessException(409, "设备当前不可归还");
         }
     }
+    public void releaseReservation(Integer deviceId){
+        if (deviceId == null || deviceId <= 0) {
+            throw new BusinessException(400, "设备ID不合法");
+        }
+        LambdaUpdateWrapper<Equipment> update = new LambdaUpdateWrapper<Equipment>()
+                .eq(Equipment::getId, deviceId)
+                .eq(Equipment::getStatus, EquipmentConstants.RESERVED)
+                .set(Equipment::getStatus, EquipmentConstants.AVAILABLE);
+        int rows = equipmentMapper.update(null, update);//乐观锁释放预留
+        if (rows != 1) {
+            throw new BusinessException(409, "设备当前不可释放预留");
+        }
+    }
 }

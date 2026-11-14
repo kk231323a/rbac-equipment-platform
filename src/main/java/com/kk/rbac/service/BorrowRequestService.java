@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -71,7 +72,7 @@ public class BorrowRequestService {
         //先把设备状态改为预留，防止并发审批导致设备被重复借用
         equipmentService.reserve(deviceId);
         //把借用申请状态改为已批准
-        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
                 .eq(BorrowRequest::getStatus, BorrowRequestConstants.PENDING)
                 .set(BorrowRequest::getStatus, BorrowRequestConstants.APPROVED)
@@ -79,7 +80,7 @@ public class BorrowRequestService {
                 .set(BorrowRequest::getDueTime, dueTime)
                 .set(BorrowRequest::getApproveTime, LocalDateTime.now());
         //使用乐观锁更新借用申请状态，防止并发审批导致状态不一致
-        int result = borrowRequestMapper.update(null,updateWrapper);
+        int result = borrowRequestMapper.update(null, updateWrapper);
         if (result != 1) {
             throw new BusinessException(409, "借用申请已处理");
         }
@@ -96,20 +97,20 @@ public class BorrowRequestService {
         if (!borrowRequest.getStatus().equals(BorrowRequestConstants.PENDING)) {
             throw new BusinessException(409, "借用申请已处理");
         }
-        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
                 .eq(BorrowRequest::getStatus, BorrowRequestConstants.PENDING)
                 .set(BorrowRequest::getStatus, BorrowRequestConstants.REJECTED)
                 .set(BorrowRequest::getApproverId, approverId)
                 .set(BorrowRequest::getApproveTime, LocalDateTime.now());
-        int result = borrowRequestMapper.update(null,updateWrapper);
+        int result = borrowRequestMapper.update(null, updateWrapper);
         if (result != 1) {
             throw new BusinessException(409, "借用申请已处理");
         }
     }
 
     @Transactional
-    public void receive(Integer requestId, Integer receiverId) {
+    public boolean receive(Integer requestId, Integer receiverId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
         }
@@ -120,20 +121,41 @@ public class BorrowRequestService {
         if (!borrowRequest.getStatus().equals(BorrowRequestConstants.APPROVED)) {
             throw new BusinessException(409, "借用申请未批准");
         }
-        if(!borrowRequest.getBorrowerId().equals(receiverId)){
+        if (!borrowRequest.getBorrowerId().equals(receiverId)) {
             throw new BusinessException(403, "不能领取他人申请的设备");
         }
+        if (borrowRequest.getApproveTime() == null) {
+            throw new BusinessException(409, "申请缺少审批时间，无法领用");
+        }
+
+        LocalDateTime deadline = borrowRequest.getApproveTime()
+                .toLocalDate()
+                .plusDays(2)
+                .atTime(12, 0);
+
+        LocalDateTime now = LocalDateTime.now(
+                ZoneId.of("Asia/Shanghai")
+        );
+
+        if (!now.isBefore(deadline)) {
+            if (!cancelExpired(requestId)) {
+                throw new BusinessException(409, "申请状态已变化，请刷新后重试");
+            }
+            return false;
+        }
         equipmentService.borrow(borrowRequest.getDeviceId());
-        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
                 .eq(BorrowRequest::getStatus, BorrowRequestConstants.APPROVED)
                 .set(BorrowRequest::getStatus, BorrowRequestConstants.RECEIVED)
                 .set(BorrowRequest::getBorrowTime, LocalDateTime.now());
-        int result = borrowRequestMapper.update(null,updateWrapper);
+        int result = borrowRequestMapper.update(null, updateWrapper);
         if (result != 1) {
             throw new BusinessException(409, "借用申请已处理");
         }
+        return true;
     }
+
     @Transactional
     public void returnEquipment(Integer requestId, Integer returnerId) {
         if (requestId == null || requestId <= 0) {
@@ -147,14 +169,69 @@ public class BorrowRequestService {
             throw new BusinessException(409, "借用申请未领取");
         }
         equipmentService.returnEquipment(borrowRequest.getDeviceId());
-        LambdaUpdateWrapper<BorrowRequest> updateWrapper=new LambdaUpdateWrapper<>();
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
                 .eq(BorrowRequest::getStatus, BorrowRequestConstants.RECEIVED)
                 .set(BorrowRequest::getReturnTime, LocalDateTime.now())
                 .set(BorrowRequest::getStatus, BorrowRequestConstants.RETURNED);
-        int result = borrowRequestMapper.update(null,updateWrapper);
+        int result = borrowRequestMapper.update(null, updateWrapper);
         if (result != 1) {
             throw new BusinessException(409, "借用申请已处理");
         }
     }
+
+    public void cancel(Integer requestId, Integer borrowerId) {
+        if (requestId == null || requestId <= 0) {
+            throw new BusinessException(400, "申请ID不合法");
+        }
+        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
+        if (borrowRequest == null) {
+            throw new BusinessException(404, BorrowRequestConstants.BORROW_REQUEST_NOT_EXIST);
+        }
+        if (!borrowRequest.getBorrowerId().equals(borrowerId)) {
+            throw new BusinessException(403, "不能取消他人申请");
+        }
+        if (!borrowRequest.getStatus().equals(BorrowRequestConstants.PENDING)) {
+            throw new BusinessException(409, "借用申请已处理，不能取消");
+        }
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
+                .eq(BorrowRequest::getStatus, BorrowRequestConstants.PENDING)
+                .set(BorrowRequest::getStatus, BorrowRequestConstants.CANCEL);
+        int result = borrowRequestMapper.update(null, updateWrapper);
+        if (result != 1) {
+            throw new BusinessException(409, "取消失败");
+        }
+    }
+
+    @Transactional
+    public boolean cancelExpired(Integer requestId) {
+        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
+        if (borrowRequest == null
+                || !BorrowRequestConstants.APPROVED.equals(borrowRequest.getStatus())
+                || borrowRequest.getApproveTime() == null) {
+            return false;
+        }
+
+        LocalDateTime ddl = borrowRequest.getApproveTime()
+                .toLocalDate()
+                .plusDays(2)
+                .atTime(12, 0);
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
+        if (now.isBefore(ddl)) {
+            return false;
+        }
+        equipmentService.releaseReservation(borrowRequest.getDeviceId());
+        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
+                .eq(BorrowRequest::getStatus, BorrowRequestConstants.APPROVED)
+                .eq(BorrowRequest::getApproveTime, borrowRequest.getApproveTime())
+                .set(BorrowRequest::getStatus, BorrowRequestConstants.CANCEL);
+        int result = borrowRequestMapper.update(null, updateWrapper);
+        if (result != 1) {
+            throw new BusinessException(409, "申请状态已变化，超时取消失败");
+        }
+        return true;
+    }
+
 }
