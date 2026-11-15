@@ -2,12 +2,15 @@ package com.kk.rbac.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.constants.BorrowRequestConstants;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.mapper.BorrowRequestMapper;
+import com.kk.rbac.vo.BorrowRequestVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -239,6 +242,35 @@ public class BorrowRequestService {
             throw new BusinessException(409, "申请状态已变化，超时取消失败");
         }
         return true;
+    }
+
+    public IPage<BorrowRequestVO> listPending(Integer pageNum, Integer pageSize) {
+
+        if (pageNum == null || pageNum < 1) {
+            throw new BusinessException(400, "页码必须大于等于1");
+        }
+
+        if (pageSize == null || pageSize < 1 || pageSize > 100) {
+            throw new BusinessException(400, "每页条数必须在1到100之间");
+        }
+
+        Page<BorrowRequestVO> page = new Page<>(pageNum, pageSize);
+
+        return borrowRequestMapper.selectPendingRequests(page);
+    }
+    public IPage<BorrowRequestVO> listReceived(Integer pageNum, Integer pageSize) {
+
+        if (pageNum == null || pageNum < 1) {
+            throw new BusinessException(400, "页码必须大于等于1");
+        }
+
+        if (pageSize == null || pageSize < 1 || pageSize > 100) {
+            throw new BusinessException(400, "每页条数必须在1到100之间");
+        }
+
+        Page<BorrowRequestVO> page = new Page<>(pageNum, pageSize);
+
+        return borrowRequestMapper.selectReceivedRequests(page);
     }
 
 }

@@ -14,5 +14,40 @@
         ORDER BY id
         LIMIT 200
     </select>
+    <select id="selectPendingRequests" resultType="com.kk.rbac.vo.BorrowRequestVO">
+        SELECT
+        r.id AS requestId,
+        r.device_id AS deviceId,
+        e.device_no AS deviceNo,
+        e.name AS deviceName,
+        e.status AS deviceStatus,
+        r.borrower_id AS borrowerId,
+        u.name AS borrowerName,
+        r.create_time AS createTime
+        FROM borrow_request r
+        JOIN equipment e ON e.id = r.device_id
+        JOIN sys_user u ON u.id = r.borrower_id
+        WHERE r.status = 'pending'
+        ORDER BY r.id ASC
+
+    </select>
+    <select id="selectReceivedRequests" resultType="com.kk.rbac.vo.BorrowRequestVO">
+        SELECT
+        r.id AS requestId,
+        r.device_id AS deviceId,
+        e.device_no AS deviceNo,
+        e.name AS deviceName,
+        e.status AS deviceStatus,
+        r.borrower_id AS borrowerId,
+        u.name AS borrowerName,
+        r.create_time AS createTime,
+        r.due_time AS dueTime,
+        r.borrow_time AS borrowTime
+        FROM borrow_request r
+        JOIN equipment e ON e.id = r.device_id
+        JOIN sys_user u ON u.id = r.borrower_id
+        WHERE r.status = 'received'
+        ORDER BY r.id ASC
+    </select>
 
 </mapper>

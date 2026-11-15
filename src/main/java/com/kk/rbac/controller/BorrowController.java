@@ -1,20 +1,21 @@
 package com.kk.rbac.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.BorrowRequestService;
+import com.kk.rbac.vo.BorrowRequestVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/borrow")
@@ -76,4 +77,27 @@ public class BorrowController {
         borrowRequestService.returnEquipment(requestId, returnerId);
         return ApiResponse.success();
     }
+    @GetMapping("/pending")
+    public ApiResponse<IPage<BorrowRequestVO>> listPending(
+            @RequestParam(value = "pageNum", defaultValue = "1")
+            Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "20")
+            Integer pageSize) {
+
+        return ApiResponse.success(
+                borrowRequestService.listPending(pageNum, pageSize)
+        );
+    }
+    @GetMapping("/received")
+    public ApiResponse<IPage<BorrowRequestVO>> listReceived(
+            @RequestParam(value = "pageNum", defaultValue = "1")
+            Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "20")
+            Integer pageSize) {
+
+        return ApiResponse.success(
+                borrowRequestService.listReceived(pageNum, pageSize)
+        );
+    }
+
 }
