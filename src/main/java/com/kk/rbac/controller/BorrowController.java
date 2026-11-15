@@ -24,6 +24,13 @@ import java.util.List;
 public class BorrowController {
     @Autowired
     private BorrowRequestService borrowRequestService;
+    @GetMapping("/borrowedList")
+    public ApiResponse<List<BorrowRequest>> listMyBorrowRequests(@AuthenticationPrincipal LoginPrincipal loginPrincipal) {
+        Integer borrowerId = loginPrincipal.userId();
+        log.info("查询借用人ID: {}的借用申请", borrowerId);
+        List<BorrowRequest> borrowRequests = borrowRequestService.listMine(borrowerId);
+        return ApiResponse.success(borrowRequests);
+    }
 
 
     @PostMapping("/request")

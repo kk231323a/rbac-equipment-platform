@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/health"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/equipment/borrowedList")//允许借用人查看自己的借用申请列表
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/borrow/borrowedList")//允许借用人查看自己的借用申请列表
                         .authenticated()
                         .requestMatchers(//需要equipment:read权限的get接口
                                    HttpMethod.GET,
@@ -67,6 +68,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,//需要拥有归还权限borrow:return权限的get接口
                                 "/api/borrow/received")
                         .hasAuthority(PermissionConstants.BORROW_RETURN)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/equipment/addNew")
+                        .hasAnyAuthority(PermissionConstants.EQUIPMENT_CREATE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

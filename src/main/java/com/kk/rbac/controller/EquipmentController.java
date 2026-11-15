@@ -2,11 +2,13 @@ package com.kk.rbac.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
+import com.kk.rbac.dto.EquipmentCreateRequest;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.BorrowRequestService;
 import com.kk.rbac.service.EquipmentService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,13 +34,7 @@ public class EquipmentController {
     }
 
 
-    @GetMapping("/borrowedList")
-    public ApiResponse<List<BorrowRequest>> listMyBorrowRequests(@AuthenticationPrincipal LoginPrincipal loginPrincipal) {
-        Integer borrowerId = loginPrincipal.userId();
-        log.info("查询借用人ID: {}的借用申请", borrowerId);
-        List<BorrowRequest> borrowRequests = borrowRequestService.listMine(borrowerId);
-        return ApiResponse.success(borrowRequests);
-    }
+
     @GetMapping("/available")
     public ApiResponse<IPage<Equipment>> listAvailable(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
@@ -47,6 +43,12 @@ public class EquipmentController {
         return ApiResponse.success(
                 equipmentService.listAvailable(pageNum, pageSize)
         );
+    }
+    @PostMapping("addNew")
+    public ApiResponse<Void> addNewEquipment(@RequestBody @Valid EquipmentCreateRequest equipmentCreateRequest) {
+        log.info("添加新设备: {}", equipmentCreateRequest);
+        equipmentService.addNewEquipment(equipmentCreateRequest);
+        return ApiResponse.success();
     }
 
 

@@ -6,17 +6,21 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.dto.EquipmentCreateRequest;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.mapper.BorrowRequestMapper;
 import com.kk.rbac.mapper.EquipmentMapper;
 import com.kk.rbac.security.LoginPrincipal;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 
 @Service
 public class EquipmentService {
@@ -102,5 +106,22 @@ public class EquipmentService {
         page = equipmentMapper.selectPage(page, query);
 
         return page;
+    }
+    public void addNewEquipment(EquipmentCreateRequest equipmentCreateRequest) {
+        if (equipmentCreateRequest == null) {
+            throw new BusinessException(400, "设备信息不能为空");
+        }
+        Equipment equipment=new Equipment();
+        BeanUtils.copyProperties(equipmentCreateRequest, equipment);
+        int result;
+        try {
+           result =equipmentMapper.insert(equipment);
+        }catch (DuplicateKeyException e){
+            throw new BusinessException(409, "设备编号已存在");
+        }
+
+        if (result!=1){
+            throw new BusinessException(500, "添加设备失败");
+        }
     }
 }
