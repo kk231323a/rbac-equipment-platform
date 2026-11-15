@@ -107,21 +107,47 @@ public class EquipmentService {
 
         return page;
     }
+
     public void addNewEquipment(EquipmentCreateRequest equipmentCreateRequest) {
         if (equipmentCreateRequest == null) {
             throw new BusinessException(400, "设备信息不能为空");
         }
-        Equipment equipment=new Equipment();
+        Equipment equipment = new Equipment();
         BeanUtils.copyProperties(equipmentCreateRequest, equipment);
         int result;
         try {
-           result =equipmentMapper.insert(equipment);
-        }catch (DuplicateKeyException e){
+            result = equipmentMapper.insert(equipment);
+        } catch (DuplicateKeyException e) {
             throw new BusinessException(409, "设备编号已存在");
         }
 
-        if (result!=1){
+        if (result != 1) {
             throw new BusinessException(500, "添加设备失败");
         }
+    }
+
+    public IPage<Equipment> listEquipment(Integer pageNum, Integer pageSize, String status) {
+        if (pageNum == null || pageNum <= 0) {
+            throw new BusinessException(400, "页码不合法");
+        }
+        if (pageSize == null || pageSize <= 0 || pageSize > 100) {
+            throw new BusinessException(400, "页大小不合法");
+        }
+        if (status != null) {
+            status = status.trim();
+            if (status.isBlank()) {
+                status = null;
+            } else if (!EquipmentConstants.AVAILABLE.equals(status)
+                    && !EquipmentConstants.RESERVED.equals(status)
+                    && !EquipmentConstants.BORROWED.equals(status)) {
+                throw new BusinessException(400, "设备状态不合法");
+            }
+        }
+        Page<Equipment> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Equipment> query = new LambdaQueryWrapper<>();
+        query.eq(status != null, Equipment::getStatus, status);
+        query.orderByAsc(Equipment::getId);
+        page = equipmentMapper.selectPage(page, query);
+        return page;
     }
 }

@@ -34,7 +34,6 @@ public class EquipmentController {
     }
 
 
-
     @GetMapping("/available")
     public ApiResponse<IPage<Equipment>> listAvailable(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
@@ -44,11 +43,21 @@ public class EquipmentController {
                 equipmentService.listAvailable(pageNum, pageSize)
         );
     }
+
     @PostMapping("addNew")
     public ApiResponse<Void> addNewEquipment(@RequestBody @Valid EquipmentCreateRequest equipmentCreateRequest) {
         log.info("添加新设备: {}", equipmentCreateRequest);
         equipmentService.addNewEquipment(equipmentCreateRequest);
         return ApiResponse.success();
+    }
+
+    @GetMapping
+    public ApiResponse<IPage<Equipment>> list(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,
+            @RequestParam(value = "status", required = false) String status) {
+
+        return ApiResponse.success(equipmentService.listEquipment(pageNum, pageSize, status));
     }
 
 
