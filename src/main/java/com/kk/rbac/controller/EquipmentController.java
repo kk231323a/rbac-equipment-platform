@@ -1,5 +1,6 @@
 package com.kk.rbac.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.entity.BorrowRequest;
@@ -38,5 +39,15 @@ public class EquipmentController {
         List<BorrowRequest> borrowRequests = borrowRequestService.listMine(borrowerId);
         return ApiResponse.success(borrowRequests);
     }
+    @GetMapping("/available")
+    public ApiResponse<IPage<Equipment>> listAvailable(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+
+        return ApiResponse.success(
+                equipmentService.listAvailable(pageNum, pageSize)
+        );
+    }
+
 
 }

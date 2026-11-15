@@ -2,6 +2,8 @@ package com.kk.rbac.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.BorrowRequest;
@@ -56,7 +58,8 @@ public class EquipmentService {
             throw new BusinessException(409, "设备当前不可借用");
         }
     }
-    public void returnEquipment(Integer deviceId){//借用状态转为可用//归还设备
+
+    public void returnEquipment(Integer deviceId) {//借用状态转为可用//归还设备
         if (deviceId == null || deviceId <= 0) {
             throw new BusinessException(400, "设备ID不合法");
         }
@@ -69,7 +72,8 @@ public class EquipmentService {
             throw new BusinessException(409, "设备当前不可归还");
         }
     }
-    public void releaseReservation(Integer deviceId){
+
+    public void releaseReservation(Integer deviceId) {
         if (deviceId == null || deviceId <= 0) {
             throw new BusinessException(400, "设备ID不合法");
         }
@@ -81,5 +85,22 @@ public class EquipmentService {
         if (rows != 1) {
             throw new BusinessException(409, "设备当前不可释放预留");
         }
+    }
+
+    public IPage<Equipment> listAvailable(Integer pageNum, Integer pageSize) {
+        if (pageNum == null || pageNum <= 0) {
+            throw new BusinessException(400, "页码不合法");
+        }
+        if (pageSize == null || pageSize <= 0 || pageSize > 100) {
+            throw new BusinessException(400, "页大小不合法");
+        }
+        Page<Equipment> page = new Page<>(pageNum, pageSize);
+        LambdaQueryWrapper<Equipment> query =
+                new LambdaQueryWrapper<Equipment>()
+                        .eq(Equipment::getStatus, EquipmentConstants.AVAILABLE)
+                        .orderByAsc(Equipment::getId);
+        page = equipmentMapper.selectPage(page, query);
+
+        return page;
     }
 }

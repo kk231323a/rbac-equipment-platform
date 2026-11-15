@@ -6,6 +6,7 @@ import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.BorrowRequestService;
+import com.kk.rbac.service.EquipmentService;
 import com.kk.rbac.vo.BorrowRequestVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import java.util.List;
 public class BorrowController {
     @Autowired
     private BorrowRequestService borrowRequestService;
+
 
     @PostMapping("/request")
     public ApiResponse<Integer> borrowEquipment(@RequestParam(value = "deviceId", required = false) Integer deviceId,
@@ -99,5 +101,6 @@ public class BorrowController {
                 borrowRequestService.listReceived(pageNum, pageSize)
         );
     }
+
 
 }
