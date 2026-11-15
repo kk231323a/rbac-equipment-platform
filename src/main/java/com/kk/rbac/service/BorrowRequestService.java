@@ -180,6 +180,7 @@ public class BorrowRequestService {
         }
     }
 
+    @Transactional
     public void cancel(Integer requestId, Integer borrowerId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -191,12 +192,18 @@ public class BorrowRequestService {
         if (!borrowRequest.getBorrowerId().equals(borrowerId)) {
             throw new BusinessException(403, "不能取消他人申请");
         }
-        if (!borrowRequest.getStatus().equals(BorrowRequestConstants.PENDING)) {
-            throw new BusinessException(409, "借用申请已处理，不能取消");
+
+        String originalStatus = borrowRequest.getStatus();
+
+        if (!BorrowRequestConstants.PENDING.equals(originalStatus) && !BorrowRequestConstants.APPROVED.equals(originalStatus)) {
+            throw new BusinessException(409, "当前申请状态不允许取消");
+        }
+        if (BorrowRequestConstants.APPROVED.equals(originalStatus)) {
+            equipmentService.releaseReservation(borrowRequest.getDeviceId());
         }
         LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
-                .eq(BorrowRequest::getStatus, BorrowRequestConstants.PENDING)
+                .eq(BorrowRequest::getStatus, originalStatus)
                 .set(BorrowRequest::getStatus, BorrowRequestConstants.CANCEL);
         int result = borrowRequestMapper.update(null, updateWrapper);
         if (result != 1) {
