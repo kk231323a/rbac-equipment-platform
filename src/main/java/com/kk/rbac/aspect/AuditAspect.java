@@ -24,6 +24,9 @@ public class AuditAspect {
                          AuditOperation auditOperation) throws Throwable {
 
         Object result = joinPoint.proceed();
+        if (Boolean.FALSE.equals(result)) {
+            return result;
+        }
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
 
         MethodBasedEvaluationContext context =

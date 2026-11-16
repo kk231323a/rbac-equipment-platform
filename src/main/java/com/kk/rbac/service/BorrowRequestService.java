@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.BorrowRequestConstants;
 import com.kk.rbac.common.constants.EquipmentConstants;
+import com.kk.rbac.common.constants.PermissionConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.entity.Equipment;
@@ -55,6 +56,11 @@ public class BorrowRequestService {
     }
 
     @Transactional
+    @AuditOperation(
+            actionCode = PermissionConstants.BORROW_APPROVED,
+            resourceType = "borrow_request",
+            resourceId = "#requestId",
+            operatorId = "#approverId")
     public void approve(Integer requestId, Integer approverId, LocalDateTime dueTime) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -89,7 +95,13 @@ public class BorrowRequestService {
             throw new BusinessException(409, "借用申请已处理");
         }
     }
-
+    @Transactional
+    @AuditOperation(
+            actionCode = "borrow:reject",
+            resourceType = "borrow_request",
+            resourceId = "#requestId",
+            operatorId = "#approverId"
+    )
     public void reject(Integer requestId, Integer approverId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -114,6 +126,11 @@ public class BorrowRequestService {
     }
 
     @Transactional
+    @AuditOperation(
+            actionCode = "borrow:receive",
+            resourceType = "borrow_request",
+            resourceId = "#requestId",
+            operatorId = "#receiverId")
     public boolean receive(Integer requestId, Integer receiverId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
