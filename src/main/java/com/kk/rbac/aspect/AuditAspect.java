@@ -1,11 +1,9 @@
 package com.kk.rbac.aspect;
-import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.context.expression.MethodBasedEvaluationContext;
-import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.annotation.Order;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
 import com.kk.rbac.common.annotation.AuditOperation;
+import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.service.AuditLogService;
+import com.kk.rbac.service.AuditSupport;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -18,6 +16,10 @@ import org.springframework.stereotype.Component;
 public class AuditAspect {
     @Autowired
     private AuditLogService auditLogService;
+    @Autowired
+    private AuditMetadataResolver resolver;
+    @Autowired
+    private AuditSupport auditSupport;
 
     @Around("@annotation(auditOperation)")
     public Object record(ProceedingJoinPoint joinPoint,
@@ -27,29 +29,19 @@ public class AuditAspect {
         if (Boolean.FALSE.equals(result)) {
             return result;
         }
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-
-        MethodBasedEvaluationContext context =
-                new MethodBasedEvaluationContext(
-                        null,
-                        signature.getMethod(),
-                        joinPoint.getArgs(),
-                        new DefaultParameterNameDiscoverer()
-                );
-
-        SpelExpressionParser parser = new SpelExpressionParser();
-
-        Integer operatorId = parser.parseExpression(auditOperation.operatorId())
-                .getValue(context, Integer.class);
-
-        Integer resourceId = parser.parseExpression(auditOperation.resourceId())
-                .getValue(context, Integer.class);
-        auditLogService.recordSuccess(
-                operatorId,
-                auditOperation.actionCode(),
-                auditOperation.resourceType(),
-                resourceId
-        );
+        if (auditOperation.independent()) {
+            try {
+                var auditLog = resolver.resolve(joinPoint, auditOperation, result, true);
+                auditLog.setResult(AuditConstants.SUCCESS);
+                auditSupport.independent(auditLog);
+            } catch (RuntimeException exception) {
+                auditSupport.unavailable(auditOperation.actionCode(), exception);
+            }
+        } else {
+            var auditLog = resolver.resolve(joinPoint, auditOperation, result, true);
+            auditLog.setResult(AuditConstants.SUCCESS);
+            auditLogService.recordSuccess(auditLog);
+        }
 
         return result;
     }

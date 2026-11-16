@@ -79,7 +79,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         } catch (DataAccessException | IllegalStateException exception) {
             logger.error("查询 Token 撤销状态失败", exception);
             SecurityContextHolder.clearContext();
-            authEntryPoint.serviceUnavailable(response);
+            authEntryPoint.serviceUnavailable(request, response);
             return;
         }
 
@@ -105,7 +105,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         } catch (DataAccessException exception) {
             logger.error("查询用户权限失败", exception);
             SecurityContextHolder.clearContext();
-            authEntryPoint.serviceUnavailable(response);
+            authEntryPoint.serviceUnavailable(request, response);
             return;
         }
 

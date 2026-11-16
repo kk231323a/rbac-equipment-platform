@@ -1,6 +1,7 @@
 package com.kk.rbac.service;
 
 import com.kk.rbac.entity.AuditLog;
+import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.mapper.AuditLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,22 @@ public class AuditLogService {
         auditLog.setActionCode(actionCode);
         auditLog.setResourceType(resourceType);
         auditLog.setResourceId(resourceId);
-        auditLog.setResult("success");
+        auditLog.setOperatorType(AuditConstants.OPERATOR_USER);
+        auditLog.setResult(AuditConstants.SUCCESS);
+        insert(auditLog);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void recordSuccess(AuditLog auditLog) {
+        insert(auditLog);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordIndependent(AuditLog auditLog) {
+        insert(auditLog);
+    }
+
+    private void insert(AuditLog auditLog) {
         int rows = auditLogMapper.insert(auditLog);
         if (rows != 1) {
             throw new IllegalStateException("保存审计日志失败");
