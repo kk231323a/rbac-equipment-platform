@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.BorrowRequestConstants;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
@@ -160,6 +161,8 @@ public class BorrowRequestService {
     }
 
     @Transactional
+    @AuditOperation(actionCode = "borrow:return", resourceType = "borrow_request",
+            operatorId = "#returnerId", resourceId = "#requestId")
     public void returnEquipment(Integer requestId, Integer returnerId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -258,6 +261,7 @@ public class BorrowRequestService {
 
         return borrowRequestMapper.selectPendingRequests(page);
     }
+
     public IPage<BorrowRequestVO> listReceived(Integer pageNum, Integer pageSize) {
 
         if (pageNum == null || pageNum < 1) {
