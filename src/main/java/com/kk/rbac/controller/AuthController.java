@@ -1,6 +1,9 @@
 package com.kk.rbac.controller;
 
 import com.kk.rbac.common.ApiResponse;
+import com.kk.rbac.common.annotation.AuditOperation;
+import com.kk.rbac.common.constants.AuditConstants;
+import com.kk.rbac.service.AuditSupport;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.dto.LoginRequest;
 import com.kk.rbac.dto.LoginResponse;
@@ -10,6 +13,7 @@ import com.kk.rbac.service.AuthService;
 import com.kk.rbac.service.JwtService;
 import com.kk.rbac.service.TokenRevocationService;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -28,7 +32,12 @@ public class AuthController {
     private TokenRevocationService tokenRevocationService;
 
     @PostMapping("/login")//登录接口
-    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    @AuditOperation(actionCode = AuditConstants.LOGIN, resourceType = AuditConstants.USER,
+            resourceId = "#result?.data()?.id()", operatorId = "#result?.data()?.id()",
+            operatorAccount = "#loginRequest.account", independent = true)
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest,
+                                             HttpServletRequest request) {
+        request.setAttribute(AuditSupport.LOGIN_ACCOUNT_ATTRIBUTE, loginRequest.getAccount());
 
         SysUser user = authService.authenticate(
                 loginRequest.getAccount(),
@@ -45,6 +54,8 @@ public class AuthController {
         return ApiResponse.success(response);
     }
     @PostMapping("/logout")//退出登录接口
+    @AuditOperation(actionCode = AuditConstants.LOGOUT, resourceType = AuditConstants.USER,
+            resourceId = "#principal.userId()", operatorId = "#principal.userId()", independent = true)
     public ApiResponse<Void> logout(@AuthenticationPrincipal LoginPrincipal principal) {
         try {
             tokenRevocationService.revoke(

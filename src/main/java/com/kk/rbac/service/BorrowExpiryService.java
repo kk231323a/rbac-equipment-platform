@@ -54,9 +54,10 @@ public class BorrowExpiryService {
                     if (borrowRequestService.cancelExpired(requestId)) {
                         cancelledCount++;
                     }
-                } catch (BusinessException exception) {
+                } catch (RuntimeException exception) {
                     log.warn("超时取消未完成，申请ID：{}，原因：{}",
-                            requestId, exception.getMessage());
+                            requestId, exception instanceof BusinessException
+                                    ? exception.getMessage() : exception.getClass().getSimpleName());
                 }
 
                 afterId = requestId;

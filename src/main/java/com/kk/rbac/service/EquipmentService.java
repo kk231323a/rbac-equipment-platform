@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.constants.EquipmentConstants;
+import com.kk.rbac.common.constants.AuditConstants;
+import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.dto.EquipmentCreateRequest;
 import com.kk.rbac.dto.EquipmentUpdateRequest;
@@ -109,7 +111,10 @@ public class EquipmentService {
         return page;
     }
 
-    public void addNewEquipment(EquipmentCreateRequest equipmentCreateRequest) {
+    @Transactional
+    @AuditOperation(actionCode = AuditConstants.EQUIPMENT_CREATE, resourceType = AuditConstants.EQUIPMENT,
+            resourceId = "#result")
+    public Integer addNewEquipment(EquipmentCreateRequest equipmentCreateRequest) {
         if (equipmentCreateRequest == null) {
             throw new BusinessException(400, "设备信息不能为空");
         }
@@ -125,6 +130,7 @@ public class EquipmentService {
         if (result != 1) {
             throw new BusinessException(500, "添加设备失败");
         }
+        return equipment.getId();
     }
 
     public IPage<Equipment> listEquipment(Integer pageNum, Integer pageSize, String status) {
@@ -151,6 +157,9 @@ public class EquipmentService {
         page = equipmentMapper.selectPage(page, query);
         return page;
     }
+    @Transactional
+    @AuditOperation(actionCode = AuditConstants.EQUIPMENT_UPDATE, resourceType = AuditConstants.EQUIPMENT,
+            resourceId = "#deviceId")
     public void updateEquipment(EquipmentUpdateRequest equipmentUpdateRequest,Integer deviceId) {
         if (equipmentUpdateRequest == null) {
             throw new BusinessException(400, "设备信息不能为空");

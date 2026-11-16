@@ -2,6 +2,8 @@ package com.kk.rbac.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kk.rbac.common.ApiResponse;
+import com.kk.rbac.service.AuditSupport;
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,8 @@ import java.nio.charset.StandardCharsets;
 public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败响应组件
 
     private final ObjectMapper objectMapper;
+    @Autowired
+    private AuditSupport auditSupport;
 
     @Override
     public void commence(
@@ -26,6 +30,9 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败�
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException {
+        if (auditSupport != null) {
+            auditSupport.httpFailure(request, 401, "未登录或登录已失效", null);
+        }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -40,6 +47,13 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败�
     public void serviceUnavailable(
             HttpServletResponse response
     ) throws IOException {
+        serviceUnavailable(AuditSupport.currentRequest(), response);
+    }
+
+    public void serviceUnavailable(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        if (auditSupport != null) {
+            auditSupport.httpFailure(request, 503, "认证服务暂不可用，请稍后重试", null);
+        }
         response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

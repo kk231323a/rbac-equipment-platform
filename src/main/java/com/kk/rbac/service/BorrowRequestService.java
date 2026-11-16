@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.BorrowRequestConstants;
+import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.constants.EquipmentConstants;
-import com.kk.rbac.common.constants.PermissionConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.entity.Equipment;
@@ -28,7 +28,12 @@ public class BorrowRequestService {
 
     @Autowired
     private EquipmentService equipmentService;
+    @Autowired
+    private BorrowTimeoutService borrowTimeoutService;
 
+    @Transactional
+    @AuditOperation(actionCode = AuditConstants.BORROW_CREATE, resourceType = AuditConstants.BORROW_REQUEST,
+            resourceId = "#result", operatorId = "#borrowerId")
     public Integer create(Integer deviceId, Integer borrowerId) {
         if (deviceId == null || deviceId <= 0)
             throw new BusinessException(400, "设备ID不合法");
@@ -57,7 +62,7 @@ public class BorrowRequestService {
 
     @Transactional
     @AuditOperation(
-            actionCode = PermissionConstants.BORROW_APPROVED,
+            actionCode = AuditConstants.BORROW_APPROVE,
             resourceType = "borrow_request",
             resourceId = "#requestId",
             operatorId = "#approverId")
@@ -97,7 +102,7 @@ public class BorrowRequestService {
     }
     @Transactional
     @AuditOperation(
-            actionCode = "borrow:reject",
+            actionCode = AuditConstants.BORROW_REJECT,
             resourceType = "borrow_request",
             resourceId = "#requestId",
             operatorId = "#approverId"
@@ -127,10 +132,10 @@ public class BorrowRequestService {
 
     @Transactional
     @AuditOperation(
-            actionCode = "borrow:receive",
+            actionCode = AuditConstants.BORROW_RECEIVE,
             resourceType = "borrow_request",
             resourceId = "#requestId",
-            operatorId = "#receiverId")
+            operatorId = "#receiverId", falseIsFailure = true)
     public boolean receive(Integer requestId, Integer receiverId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -178,7 +183,7 @@ public class BorrowRequestService {
     }
 
     @Transactional
-    @AuditOperation(actionCode = "borrow:return", resourceType = "borrow_request",
+    @AuditOperation(actionCode = AuditConstants.BORROW_RETURN, resourceType = "borrow_request",
             operatorId = "#returnerId", resourceId = "#requestId")
     public void returnEquipment(Integer requestId, Integer returnerId) {
         if (requestId == null || requestId <= 0) {
@@ -204,6 +209,8 @@ public class BorrowRequestService {
     }
 
     @Transactional
+    @AuditOperation(actionCode = AuditConstants.BORROW_CANCEL, resourceType = AuditConstants.BORROW_REQUEST,
+            resourceId = "#requestId", operatorId = "#borrowerId")
     public void cancel(Integer requestId, Integer borrowerId) {
         if (requestId == null || requestId <= 0) {
             throw new BusinessException(400, "申请ID不合法");
@@ -234,34 +241,8 @@ public class BorrowRequestService {
         }
     }
 
-    @Transactional
     public boolean cancelExpired(Integer requestId) {
-        BorrowRequest borrowRequest = borrowRequestMapper.selectById(requestId);
-        if (borrowRequest == null
-                || !BorrowRequestConstants.APPROVED.equals(borrowRequest.getStatus())
-                || borrowRequest.getApproveTime() == null) {
-            return false;
-        }
-
-        LocalDateTime ddl = borrowRequest.getApproveTime()
-                .toLocalDate()
-                .plusDays(2)
-                .atTime(12, 0);
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
-        if (now.isBefore(ddl)) {
-            return false;
-        }
-        equipmentService.releaseReservation(borrowRequest.getDeviceId());
-        LambdaUpdateWrapper<BorrowRequest> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(BorrowRequest::getId, borrowRequest.getId())
-                .eq(BorrowRequest::getStatus, BorrowRequestConstants.APPROVED)
-                .eq(BorrowRequest::getApproveTime, borrowRequest.getApproveTime())
-                .set(BorrowRequest::getStatus, BorrowRequestConstants.CANCEL);
-        int result = borrowRequestMapper.update(null, updateWrapper);
-        if (result != 1) {
-            throw new BusinessException(409, "申请状态已变化，超时取消失败");
-        }
-        return true;
+        return borrowTimeoutService.cancelExpired(requestId);
     }
 
     public IPage<BorrowRequestVO> listPending(Integer pageNum, Integer pageSize) {
