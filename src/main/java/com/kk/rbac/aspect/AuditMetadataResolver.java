@@ -18,7 +18,8 @@ public class AuditMetadataResolver {
     private final SpelExpressionParser parser = new SpelExpressionParser();
     private final DefaultParameterNameDiscoverer names = new DefaultParameterNameDiscoverer();
 
-    public AuditLog resolve(ProceedingJoinPoint joinPoint, AuditOperation operation, Object result, boolean strict) {
+    public AuditLog resolve(ProceedingJoinPoint joinPoint, AuditOperation operation, Object result, boolean strict) //组装整条日志
+    {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         var method = AopUtils.getMostSpecificMethod(signature.getMethod(), joinPoint.getTarget().getClass());
         var context = new MethodBasedEvaluationContext(null, method, joinPoint.getArgs(), names);

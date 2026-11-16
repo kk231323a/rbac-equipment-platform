@@ -25,7 +25,7 @@ public class AuditFailureAspect {
         try {
             result = joinPoint.proceed();
         } catch (Throwable exception) {
-            var auditLog = resolver.resolve(joinPoint, operation, null, false);
+            var auditLog = resolver.resolve(joinPoint, operation, null, false);//解析器组装日志
             auditLog.setResult(AuditConstants.FAILURE);
             auditLog.setErrorCode(AuditSupport.errorCode(exception));
             auditLog.setErrorMessage(AuditSupport.errorMessage(exception));

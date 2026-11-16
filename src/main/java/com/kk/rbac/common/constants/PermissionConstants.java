@@ -9,6 +9,8 @@ public final class PermissionConstants {
     public static final String BORROW_RETURN = "borrow:return";
     public static final String EQUIPMENT_UPDATE = "equipment:update";
 
+    public static final String AUDIT_READ = "audit:read";
+
 
     private PermissionConstants() {
     }

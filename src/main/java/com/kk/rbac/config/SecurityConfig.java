@@ -73,6 +73,8 @@ public class SecurityConfig {
                         .hasAnyAuthority(PermissionConstants.EQUIPMENT_CREATE)
                         .requestMatchers(HttpMethod.PUT, "/api/equipment/update/*")
                         .hasAuthority(PermissionConstants.EQUIPMENT_UPDATE)
+                        .requestMatchers(HttpMethod.GET, "/api/audit/logs")
+                        .hasAuthority(PermissionConstants.AUDIT_READ)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
