@@ -71,6 +71,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/equipment/addNew")
                         .hasAnyAuthority(PermissionConstants.EQUIPMENT_CREATE)
+                        .requestMatchers(HttpMethod.PUT, "/api/equipment/update/*")
+                        .hasAuthority(PermissionConstants.EQUIPMENT_UPDATE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

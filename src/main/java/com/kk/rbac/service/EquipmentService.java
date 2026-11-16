@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.constants.EquipmentConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.dto.EquipmentCreateRequest;
+import com.kk.rbac.dto.EquipmentUpdateRequest;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.mapper.BorrowRequestMapper;
@@ -149,5 +150,23 @@ public class EquipmentService {
         query.orderByAsc(Equipment::getId);
         page = equipmentMapper.selectPage(page, query);
         return page;
+    }
+    public void updateEquipment(EquipmentUpdateRequest equipmentUpdateRequest,Integer deviceId) {
+        if (equipmentUpdateRequest == null) {
+            throw new BusinessException(400, "设备信息不能为空");
+        }
+        if (deviceId == null || deviceId <= 0) {
+            throw new BusinessException(400, "设备ID不合法");
+        }
+        Equipment equipment = new Equipment();
+        BeanUtils.copyProperties(equipmentUpdateRequest, equipment);
+        equipment.setId(deviceId);
+        int rows;
+
+        rows = equipmentMapper.updateById(equipment);
+
+        if (rows == 0) {
+            throw new BusinessException(404, EquipmentConstants.EQUIPMENT_NOT_EXIST);
+        }
     }
 }

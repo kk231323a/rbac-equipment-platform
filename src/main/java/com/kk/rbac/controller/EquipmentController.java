@@ -3,6 +3,7 @@ package com.kk.rbac.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.dto.EquipmentCreateRequest;
+import com.kk.rbac.dto.EquipmentUpdateRequest;
 import com.kk.rbac.entity.Equipment;
 import com.kk.rbac.entity.BorrowRequest;
 import com.kk.rbac.security.LoginPrincipal;
@@ -58,6 +59,14 @@ public class EquipmentController {
             @RequestParam(value = "status", required = false) String status) {
 
         return ApiResponse.success(equipmentService.listEquipment(pageNum, pageSize, status));
+    }
+    @PutMapping("/update/{id}")
+    public ApiResponse<Void> updateEquipment(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody EquipmentUpdateRequest request) {
+
+        equipmentService.updateEquipment(request, id);
+        return ApiResponse.success();
     }
 
 
