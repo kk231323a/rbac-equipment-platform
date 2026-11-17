@@ -20,6 +20,8 @@ public final class AuditConstants {
     public static final String OPERATOR_USER = "user";
     public static final String OPERATOR_SYSTEM = "system";
     public static final String OPERATOR_ANONYMOUS = "anonymous";
+    public static final String USER_ENABLE = "user:enable";
+
 
     private AuditConstants() {
     }

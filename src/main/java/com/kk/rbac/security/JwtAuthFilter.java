@@ -1,5 +1,7 @@
 package com.kk.rbac.security;
 
+import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.service.AuthService;
 import com.kk.rbac.service.JwtService;
 import com.kk.rbac.service.PermissionService;
 import com.kk.rbac.service.TokenRevocationService;
@@ -28,6 +30,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final AuthEntryPoint authEntryPoint;
     private final TokenRevocationService tokenRevocationService;
     private final PermissionService permissionService;
+    private final AuthService authService;
 
 
     @Override
@@ -92,6 +95,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             );
             return;
         }
+        boolean enabled;
+        try {
+            enabled = authService.isEnabled(userId);
+        } catch (DataAccessException exception) {
+            logger.error("查询账号状态失败", exception);
+            SecurityContextHolder.clearContext();
+            authEntryPoint.serviceUnavailable(request, response);
+            return;
+        }
+
+        if (!enabled) {
+            SecurityContextHolder.clearContext();
+            authEntryPoint.commence(
+                    request,
+                    response,
+                    new BadCredentialsException("账号已被禁用或不存在")
+            );
+            return;
+        }
 //        查询用户权限
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 //        将用户权限代码转换为Spring Security的SimpleGrantedAuthority对象，并添加到权限列表中
@@ -115,6 +137,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 claims.getId(),
                 claims.getExpiration().toInstant()
         );
+
 
         // 创建一个已认证身份，将登录身份对象作为主体，权限列表为空
         UsernamePasswordAuthenticationToken authentication =

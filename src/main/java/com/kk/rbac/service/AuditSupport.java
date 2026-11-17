@@ -172,6 +172,7 @@ public class AuditSupport {
             case "/api/borrow/receive" -> AuditConstants.BORROW_RECEIVE;
             case "/api/borrow/return" -> AuditConstants.BORROW_RETURN;
             case "/api/borrow/request/cancel" -> AuditConstants.BORROW_CANCEL;
+            case "/api/user/enable" -> AuditConstants.USER_ENABLE;
             default -> null;
         };
         if (action == null) {
@@ -181,6 +182,10 @@ public class AuditSupport {
             LoginPrincipal principal = principal();
             return new Route(action, AuditConstants.USER,
                     AuditConstants.LOGOUT.equals(action) && principal != null ? principal.userId() : null, path);
+        }
+        if (AuditConstants.USER_ENABLE.equals(action)) {
+            return new Route(action, AuditConstants.USER,
+                    positiveId(request.getParameter("userId")), path);
         }
         if (AuditConstants.EQUIPMENT_CREATE.equals(action)) {
             return new Route(action, AuditConstants.EQUIPMENT, null, path);

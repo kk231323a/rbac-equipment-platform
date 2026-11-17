@@ -5,6 +5,7 @@ import com.kk.rbac.common.constants.PermissionConstants;
 import com.kk.rbac.security.AuthDeniedHandler;
 import com.kk.rbac.security.AuthEntryPoint;
 import com.kk.rbac.security.JwtAuthFilter;
+import com.kk.rbac.service.AuthService;
 import com.kk.rbac.service.JwtService;
 import com.kk.rbac.service.PermissionService;
 import com.kk.rbac.service.TokenRevocationService;
@@ -26,7 +27,8 @@ public class SecurityConfig {
             JwtService jwtService,
             TokenRevocationService tokenRevocationService,
             PermissionService permissionService,
-            AuthDeniedHandler authDeniedHandler
+            AuthDeniedHandler authDeniedHandler,
+            AuthService authService
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -75,6 +77,8 @@ public class SecurityConfig {
                         .hasAuthority(PermissionConstants.EQUIPMENT_UPDATE)
                         .requestMatchers(HttpMethod.GET, "/api/audit/logs")
                         .hasAuthority(PermissionConstants.AUDIT_READ)
+                        .requestMatchers(HttpMethod.POST, "/api/user/enable")
+                        .hasAnyAuthority(PermissionConstants.USER_ENABLE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
@@ -86,7 +90,8 @@ public class SecurityConfig {
                                 jwtService,
                                 authEntryPoint,
                                 tokenRevocationService,
-                                permissionService
+                                permissionService,
+                                authService
                         ),
                         UsernamePasswordAuthenticationFilter.class
                 )
