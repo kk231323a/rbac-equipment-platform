@@ -16,11 +16,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     @Autowired
     public UserService userService;
+
     @PostMapping("/enable")
-    public ApiResponse<Void> userEnable(Integer userId, Boolean enable, @AuthenticationPrincipal LoginPrincipal principal) {
+    public ApiResponse<Void> userEnable(Integer userId,@AuthenticationPrincipal LoginPrincipal principal) {
         Integer OperatorId = principal.userId();
-        log.info("用户启用/禁用请求，用户ID: {}, 启用状态: {},操作人ID:{}", userId, enable, OperatorId);
-        userService.enableUser(userId, enable, OperatorId);
+        log.info("用户启用请求，用户ID: {},操作人ID:{}", userId, OperatorId);
+        userService.enableUser(userId, OperatorId);
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/disable")
+    public ApiResponse<Void> userDisable(Integer userId, @AuthenticationPrincipal LoginPrincipal principal) {
+        Integer OperatorId = principal.userId();
+        log.info("用户禁用请求，用户ID: {},操作人ID:{}", userId, OperatorId);
+        userService.disableUser(userId, OperatorId);
         return ApiResponse.success();
     }
 }

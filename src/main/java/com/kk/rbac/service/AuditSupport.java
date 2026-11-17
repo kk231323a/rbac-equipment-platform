@@ -150,7 +150,7 @@ public class AuditSupport {
         }
     }
 
-    private static Route route(HttpServletRequest request) {
+    private static Route route(HttpServletRequest request) {//从 HTTP 请求中识别“这次操作该怎么记审计日志”
         if (request == null) {
             return null;
         }
@@ -173,6 +173,7 @@ public class AuditSupport {
             case "/api/borrow/return" -> AuditConstants.BORROW_RETURN;
             case "/api/borrow/request/cancel" -> AuditConstants.BORROW_CANCEL;
             case "/api/user/enable" -> AuditConstants.USER_ENABLE;
+            case "/api/user/disable" -> AuditConstants.USER_DISABLE;
             default -> null;
         };
         if (action == null) {
@@ -183,9 +184,14 @@ public class AuditSupport {
             return new Route(action, AuditConstants.USER,
                     AuditConstants.LOGOUT.equals(action) && principal != null ? principal.userId() : null, path);
         }
-        if (AuditConstants.USER_ENABLE.equals(action)) {
-            return new Route(action, AuditConstants.USER,
-                    positiveId(request.getParameter("userId")), path);
+        if (AuditConstants.USER_ENABLE.equals(action)
+                || AuditConstants.USER_DISABLE.equals(action)) {
+            return new Route(
+                    action,
+                    AuditConstants.USER,
+                    positiveId(request.getParameter("userId")),
+                    path
+            );
         }
         if (AuditConstants.EQUIPMENT_CREATE.equals(action)) {
             return new Route(action, AuditConstants.EQUIPMENT, null, path);

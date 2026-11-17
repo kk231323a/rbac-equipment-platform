@@ -79,6 +79,8 @@ public class SecurityConfig {
                         .hasAuthority(PermissionConstants.AUDIT_READ)
                         .requestMatchers(HttpMethod.POST, "/api/user/enable")
                         .hasAnyAuthority(PermissionConstants.USER_ENABLE)
+                        .requestMatchers(HttpMethod.POST, "/api/user/disable")
+                        .hasAnyAuthority(PermissionConstants.USER_DISABLE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
