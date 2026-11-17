@@ -10,6 +10,7 @@ public final class PermissionConstants {
     public static final String EQUIPMENT_UPDATE = "equipment:update";
 
     public static final String AUDIT_READ = "audit:read";
+    public static final String USER_ENABLE = "user:enable";
 
 
     private PermissionConstants() {

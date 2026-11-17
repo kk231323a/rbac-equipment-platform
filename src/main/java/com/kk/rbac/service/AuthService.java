@@ -32,5 +32,15 @@ public class AuthService {
         }
 
     }
+    public boolean isEnabled(Integer userId){
+        if(userId==null||userId<=0)
+            return false;
+        SysUser user=sysUserMapper.selectById(userId);
+        if (user==null)
+            return false;
+        if (Boolean.TRUE.equals(user.getEnable()))
+            return true;
+        return false;
+    }
 
 }
