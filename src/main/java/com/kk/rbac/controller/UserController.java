@@ -39,4 +39,13 @@ public class UserController {
         IPage<UserVO> userPage = userService.listUsers(pageNum,pageSize);
         return ApiResponse.success(userPage);
     }
+    @PostMapping("/role/assign")
+    public ApiResponse<Void> assignRole(
+            @RequestParam(value = "userId", required = false) Integer userId,
+            @RequestParam(value = "roleId", required = false) Integer roleId,
+            @AuthenticationPrincipal LoginPrincipal principal) {
+
+        userService.assignRole(userId, roleId, principal.userId());
+        return ApiResponse.success();
+    }
 }

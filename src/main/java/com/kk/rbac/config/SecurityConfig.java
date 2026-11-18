@@ -93,6 +93,8 @@ public class SecurityConfig {
                         .hasAnyAuthority(PermissionConstants.USER_READ)
                         .requestMatchers(HttpMethod.HEAD, "/api/user")
                         .hasAnyAuthority(PermissionConstants.USER_READ)
+                        .requestMatchers(HttpMethod.POST, "/api/user/role/assign")
+                        .hasAuthority(PermissionConstants.USER_ROLE_ASSIGN)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

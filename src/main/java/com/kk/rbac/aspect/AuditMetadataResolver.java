@@ -1,5 +1,7 @@
 package com.kk.rbac.aspect;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.entity.AuditLog;
@@ -7,6 +9,7 @@ import com.kk.rbac.service.AuditSupport;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
@@ -17,6 +20,8 @@ import org.springframework.stereotype.Component;
 public class AuditMetadataResolver {
     private final SpelExpressionParser parser = new SpelExpressionParser();
     private final DefaultParameterNameDiscoverer names = new DefaultParameterNameDiscoverer();
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public AuditLog resolve(ProceedingJoinPoint joinPoint, AuditOperation operation, Object result, boolean strict) //组装整条日志
     {
@@ -28,6 +33,16 @@ public class AuditMetadataResolver {
         auditLog.setActionCode(operation.actionCode());
         auditLog.setResourceType(operation.resourceType());
         auditLog.setResourceId(positive(read(operation.resourceId(), context, Integer.class, strict)));
+        Object details = read(operation.details(), context, Object.class, strict);
+        if (details != null) {
+            try {
+                auditLog.setDetails(objectMapper.writeValueAsString(details));
+            } catch (JsonProcessingException | RuntimeException e) {
+                if (strict) {
+                    throw new IllegalStateException("审计明细序列化失败", e);
+                }
+            }
+        }
         if (operation.system()) {
             auditLog.setOperatorType(AuditConstants.OPERATOR_SYSTEM);
         } else {

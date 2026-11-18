@@ -7,10 +7,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.entity.SysRole;
 import com.kk.rbac.entity.SysUser;
+import com.kk.rbac.entity.SysUserRole;
+import com.kk.rbac.mapper.SysRoleMapper;
 import com.kk.rbac.mapper.SysUserMapper;
+import com.kk.rbac.mapper.SysUserRoleMapper;
 import com.kk.rbac.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +26,11 @@ import java.security.Principal;
 public class UserService {
     @Autowired
     public SysUserMapper sysUserMapper;
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
+
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
 
     @Transactional
     @AuditOperation(
@@ -43,7 +53,8 @@ public class UserService {
     public void disableUser(Integer userId, Integer operatorId) {
         updateEnabled(userId, false, operatorId);
     }
-    private void updateEnabled(Integer userId, boolean enable, Integer operatorId){
+
+    private void updateEnabled(Integer userId, boolean enable, Integer operatorId) {
         if (operatorId.equals(userId))
             throw new BusinessException(403, "不能修改自己的启用状态");
 
@@ -55,7 +66,7 @@ public class UserService {
         update.eq(SysUser::getId, userId).set(SysUser::getEnable, enable);
         int rows = sysUserMapper.update(update);
         if (rows != 1) {
-            throw new BusinessException(404,"用户不存在");
+            throw new BusinessException(404, "用户不存在");
         }
     }
 
@@ -63,12 +74,51 @@ public class UserService {
         if (pageNum == null || pageNum <= 0) {
             throw new BusinessException(400, "页码必须大于0");
         }
-        if (pageSize == null || pageSize <= 0||pageSize>100) {
+        if (pageSize == null || pageSize <= 0 || pageSize > 100) {
             throw new BusinessException(400, "每页数量必须在1到100之间");
         }
-        Page<UserVO> page=new Page<>(pageNum,pageSize);
+        Page<UserVO> page = new Page<>(pageNum, pageSize);
 
-        page=sysUserMapper.selectAllUser(page);
+        page = sysUserMapper.selectAllUser(page);
         return page;
+    }
+
+    @AuditOperation(
+            actionCode = AuditConstants.USER_ROLE_ASSIGN,
+            resourceType = AuditConstants.USER,
+            resourceId = "#userId",
+            operatorId = "#operatorId",
+            independent = true,
+            details = "{'userId': #userId, 'roleId': #roleId}"
+    )
+    public void assignRole(Integer userId, Integer roleId, Integer operatorId) {
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(400, "用户ID不能为空且必须大于0");
+        }
+        if (roleId == null || roleId <= 0) {
+            throw new BusinessException(400, "角色ID不能为空且必须大于0");
+        }
+        SysUser user = sysUserMapper.selectById(userId);
+        if (user == null)
+            throw new BusinessException(404, "用户不存在");
+        SysRole role = sysRoleMapper.selectById(roleId);
+        if (role == null)
+            throw new BusinessException(404, "角色不存在");
+
+        // 为用户分配角色
+        SysUserRole userRole = new SysUserRole();
+        userRole.setUserId(userId);
+        userRole.setRoleId(roleId);
+
+        int rows;
+        try {
+            rows = sysUserRoleMapper.insert(userRole);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(409, "用户已拥有该角色");
+        }
+
+        if (rows != 1) {
+            throw new BusinessException(500, "角色分配失败");
+        }
     }
 }

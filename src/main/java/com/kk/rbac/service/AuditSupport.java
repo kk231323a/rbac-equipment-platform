@@ -1,5 +1,7 @@
 package com.kk.rbac.service;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.LinkedHashMap;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.AuditLog;
@@ -25,6 +27,8 @@ public class AuditSupport {
 
     @Autowired
     private AuditLogService auditLogService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public static HttpServletRequest currentRequest() {
         return RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes
@@ -112,6 +116,17 @@ public class AuditSupport {
         auditLog.setErrorCode(code);
         auditLog.setErrorMessage(bounded(message, 255));
         auditLog.setRequestPath(route.path());
+        if (AuditConstants.USER_ROLE_ASSIGN.equals(route.action())) {
+            try {
+                var details = new LinkedHashMap<String, Integer>();
+                details.put("userId", route.resourceId());
+                details.put("roleId", positiveId(request.getParameter("roleId")));
+                auditLog.setDetails(objectMapper.writeValueAsString(details));
+            } catch (JsonProcessingException | RuntimeException e) {
+                log.error("角色分配审计明细生成失败，异常类型：{}",
+                        e.getClass().getSimpleName());
+            }
+        }
         markHandled(request, route.action());
         independent(auditLog);
     }
@@ -174,6 +189,7 @@ public class AuditSupport {
             case "/api/borrow/request/cancel" -> AuditConstants.BORROW_CANCEL;
             case "/api/user/enable" -> AuditConstants.USER_ENABLE;
             case "/api/user/disable" -> AuditConstants.USER_DISABLE;
+            case "/api/user/role/assign" -> AuditConstants.USER_ROLE_ASSIGN;
             default -> null;
         };
         if (action == null) {
@@ -185,7 +201,8 @@ public class AuditSupport {
                     AuditConstants.LOGOUT.equals(action) && principal != null ? principal.userId() : null, path);
         }
         if (AuditConstants.USER_ENABLE.equals(action)
-                || AuditConstants.USER_DISABLE.equals(action)) {
+                || AuditConstants.USER_DISABLE.equals(action)
+                || AuditConstants.USER_ROLE_ASSIGN.equals(action)) {
             return new Route(
                     action,
                     AuditConstants.USER,

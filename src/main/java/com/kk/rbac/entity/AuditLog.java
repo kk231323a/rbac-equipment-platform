@@ -23,4 +23,5 @@ public class AuditLog {
     private String errorMessage;
     private String requestPath;
     private LocalDateTime createTime;
+    private String details;
 }

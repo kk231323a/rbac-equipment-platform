@@ -13,6 +13,7 @@ public final class PermissionConstants {
     public static final String USER_ENABLE = "user:enable";
     public static final String USER_DISABLE = "user:disable";
     public static final String USER_READ = "user:read";
+    public static final String USER_ROLE_ASSIGN = "user:role:assign";
 
 
     private PermissionConstants() {

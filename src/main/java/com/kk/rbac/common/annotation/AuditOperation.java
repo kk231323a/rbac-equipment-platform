@@ -18,6 +18,7 @@ public @interface AuditOperation {
     String operatorId() default "";
 
     String operatorAccount() default "";
+    String details() default "";
 
     boolean system() default false;
 
@@ -26,4 +27,5 @@ public @interface AuditOperation {
 
     // 领取超时返回 false 表示未领取；超时扫描返回 false 则只是未处理。
     boolean falseIsFailure() default false;
+
 }
