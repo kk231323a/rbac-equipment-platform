@@ -23,6 +23,7 @@ public final class AuditConstants {
     public static final String USER_ENABLE = "user:enable";
     public static final String USER_DISABLE = "user:disable";
     public static final String USER_ROLE_ASSIGN = "user:role:assign";
+    public static final String USER_ROLE_REVOKE = "user:role:revoke";
 
     private AuditConstants() {
     }

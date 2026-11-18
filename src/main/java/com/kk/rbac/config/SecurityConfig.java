@@ -95,6 +95,8 @@ public class SecurityConfig {
                         .hasAnyAuthority(PermissionConstants.USER_READ)
                         .requestMatchers(HttpMethod.HEAD, "/api/user", "/api/user/roles")
                         .hasAnyAuthority(PermissionConstants.USER_READ)
+                        .requestMatchers(HttpMethod.POST, "/api/user/role/revoke")
+                        .hasAuthority(PermissionConstants.USER_ROLE_REVOKE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

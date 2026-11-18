@@ -56,4 +56,13 @@ public class UserController {
             @RequestParam(value = "userId", required = false) Integer userId) {
         return ApiResponse.success(userService.listUserRoles(userId));
     }
+
+    @PostMapping("/role/revoke")
+    public ApiResponse<Void> revokeRole(
+            @RequestParam(value = "userId", required = false) Integer userId,
+            @RequestParam(value = "roleId", required = false) Integer roleId,
+            @AuthenticationPrincipal LoginPrincipal principal) {
+        userService.revokeRole(userId, roleId, principal.userId());
+        return ApiResponse.success();
+    }
 }

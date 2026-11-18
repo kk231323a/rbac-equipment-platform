@@ -116,14 +116,15 @@ public class AuditSupport {
         auditLog.setErrorCode(code);
         auditLog.setErrorMessage(bounded(message, 255));
         auditLog.setRequestPath(route.path());
-        if (AuditConstants.USER_ROLE_ASSIGN.equals(route.action())) {
+        if (AuditConstants.USER_ROLE_ASSIGN.equals(route.action())
+                || AuditConstants.USER_ROLE_REVOKE.equals(route.action())) {
             try {
                 var details = new LinkedHashMap<String, Integer>();
                 details.put("userId", route.resourceId());
                 details.put("roleId", positiveId(request.getParameter("roleId")));
                 auditLog.setDetails(objectMapper.writeValueAsString(details));
             } catch (JsonProcessingException | RuntimeException e) {
-                log.error("角色分配审计明细生成失败，异常类型：{}",
+                log.error("角色变更审计明细生成失败，异常类型：{}",
                         e.getClass().getSimpleName());
             }
         }
@@ -190,6 +191,7 @@ public class AuditSupport {
             case "/api/user/enable" -> AuditConstants.USER_ENABLE;
             case "/api/user/disable" -> AuditConstants.USER_DISABLE;
             case "/api/user/role/assign" -> AuditConstants.USER_ROLE_ASSIGN;
+            case "/api/user/role/revoke" -> AuditConstants.USER_ROLE_REVOKE;
             default -> null;
         };
         if (action == null) {
@@ -202,7 +204,8 @@ public class AuditSupport {
         }
         if (AuditConstants.USER_ENABLE.equals(action)
                 || AuditConstants.USER_DISABLE.equals(action)
-                || AuditConstants.USER_ROLE_ASSIGN.equals(action)) {
+                || AuditConstants.USER_ROLE_ASSIGN.equals(action)
+                || AuditConstants.USER_ROLE_REVOKE.equals(action)) {
             return new Route(
                     action,
                     AuditConstants.USER,

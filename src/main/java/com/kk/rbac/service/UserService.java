@@ -134,4 +134,39 @@ public class UserService {
 
         return sysRoleMapper.selectRolesByUserId(userId);
     }
+    @AuditOperation(
+            actionCode = AuditConstants.USER_ROLE_REVOKE,
+            resourceType = AuditConstants.USER,
+            resourceId = "#userId",
+            operatorId = "#operatorId",
+            independent = true,
+            details = "{'userId': #userId, 'roleId': #roleId}"
+    )
+    public void revokeRole(Integer userId, Integer roleId, Integer operatorId) {
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(400, "用户ID不能为空且必须大于0");
+        }
+        if (roleId == null || roleId <= 0) {
+            throw new BusinessException(400, "角色ID不能为空且必须大于0");
+        }
+        if (userId.equals(operatorId)) {
+            throw new BusinessException(403, "不能撤销自己的角色");
+        }
+        SysUser user = sysUserMapper.selectById(userId);
+        if (user == null)
+            throw new BusinessException(404, "用户不存在");
+        SysRole role = sysRoleMapper.selectById(roleId);
+        if (role == null)
+            throw new BusinessException(404, "角色不存在");
+
+
+        LambdaQueryWrapper<SysUserRole> condition = new LambdaQueryWrapper<>();
+        condition.eq(SysUserRole::getUserId, userId)
+                .eq(SysUserRole::getRoleId, roleId);
+
+        int rows = sysUserRoleMapper.delete(condition);
+        if (rows != 1) {
+            throw new BusinessException(409, "用户未拥有该角色或已被撤销");
+        }
+    }
 }
