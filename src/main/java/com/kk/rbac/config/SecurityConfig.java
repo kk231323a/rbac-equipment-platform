@@ -51,6 +51,8 @@ public class SecurityConfig {
                                 "/api/equipment/**"
                         )
                         .hasAnyAuthority(PermissionConstants.EQUIPMENT_READ)
+                        .requestMatchers(HttpMethod.HEAD, "/api/equipment/**")
+                        .hasAnyAuthority(PermissionConstants.EQUIPMENT_READ)
                         .requestMatchers(//需要拥有借用权限borrow:create权限的post接口
                                 HttpMethod.POST,
                                 "/api/borrow/request",
@@ -64,11 +66,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, //需要拥有审批权限borrow:approve权限的get接口
                                 "/api/borrow/pending")
                         .hasAnyAuthority(PermissionConstants.BORROW_APPROVED)
+                        .requestMatchers(HttpMethod.HEAD, "/api/borrow/pending")
+                        .hasAnyAuthority(PermissionConstants.BORROW_APPROVED)
                         .requestMatchers(HttpMethod.POST,
                                 "/api/borrow/return")
                         .hasAuthority(PermissionConstants.BORROW_RETURN)
                         .requestMatchers(HttpMethod.GET,//需要拥有归还权限borrow:return权限的get接口
                                 "/api/borrow/received")
+                        .hasAuthority(PermissionConstants.BORROW_RETURN)
+                        .requestMatchers(HttpMethod.HEAD, "/api/borrow/received")
                         .hasAuthority(PermissionConstants.BORROW_RETURN)
                         .requestMatchers(HttpMethod.POST,
                                 "/api/equipment/addNew")
@@ -77,10 +83,16 @@ public class SecurityConfig {
                         .hasAuthority(PermissionConstants.EQUIPMENT_UPDATE)
                         .requestMatchers(HttpMethod.GET, "/api/audit/logs")
                         .hasAuthority(PermissionConstants.AUDIT_READ)
+                        .requestMatchers(HttpMethod.HEAD, "/api/audit/logs")
+                        .hasAuthority(PermissionConstants.AUDIT_READ)
                         .requestMatchers(HttpMethod.POST, "/api/user/enable")
                         .hasAnyAuthority(PermissionConstants.USER_ENABLE)
                         .requestMatchers(HttpMethod.POST, "/api/user/disable")
                         .hasAnyAuthority(PermissionConstants.USER_DISABLE)
+                        .requestMatchers(HttpMethod.GET, "/api/user")
+                        .hasAnyAuthority(PermissionConstants.USER_READ)
+                        .requestMatchers(HttpMethod.HEAD, "/api/user")
+                        .hasAnyAuthority(PermissionConstants.USER_READ)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

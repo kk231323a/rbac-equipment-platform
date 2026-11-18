@@ -10,10 +10,19 @@
         SELECT DISTINCT p.permission_code
         FROM sys_user_role ur
         JOIN sys_role_permission rp
-          ON rp.role_id = ur.role_id
+        ON rp.role_id = ur.role_id
         JOIN sys_permission p
-          ON p.id = rp.permission_id
+        ON p.id = rp.permission_id
         WHERE ur.user_id = #{userId}
+    </select>
+    <select id="selectAllUser" resultType="com.kk.rbac.vo.UserVO">
+        select u.id as id,
+        u.name as name,
+        u.account as account,
+        u.create_time as createTime,
+        u.enable as enable
+        from sys_user u
+        order by u.id desc
     </select>
 
 </mapper>
