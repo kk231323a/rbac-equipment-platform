@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.UserService;
+import com.kk.rbac.vo.RoleVO;
 import com.kk.rbac.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -47,5 +50,10 @@ public class UserController {
 
         userService.assignRole(userId, roleId, principal.userId());
         return ApiResponse.success();
+    }
+    @GetMapping("/roles")
+    public ApiResponse<List<RoleVO>> listUserRoles(
+            @RequestParam(value = "userId", required = false) Integer userId) {
+        return ApiResponse.success(userService.listUserRoles(userId));
     }
 }

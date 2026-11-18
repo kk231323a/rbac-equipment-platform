@@ -13,6 +13,7 @@ import com.kk.rbac.entity.SysUserRole;
 import com.kk.rbac.mapper.SysRoleMapper;
 import com.kk.rbac.mapper.SysUserMapper;
 import com.kk.rbac.mapper.SysUserRoleMapper;
+import com.kk.rbac.vo.RoleVO;
 import com.kk.rbac.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -120,5 +122,16 @@ public class UserService {
         if (rows != 1) {
             throw new BusinessException(500, "角色分配失败");
         }
+    }
+    public List<RoleVO> listUserRoles(Integer userId) {
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(400, "用户ID不能为空且必须大于0");
+        }
+
+        if (sysUserMapper.selectById(userId) == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        return sysRoleMapper.selectRolesByUserId(userId);
     }
 }
