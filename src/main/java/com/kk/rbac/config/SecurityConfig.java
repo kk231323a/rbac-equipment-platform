@@ -91,12 +91,28 @@ public class SecurityConfig {
                         .hasAnyAuthority(PermissionConstants.USER_DISABLE)
                         .requestMatchers(HttpMethod.POST, "/api/user/role/assign")
                         .hasAuthority(PermissionConstants.USER_ROLE_ASSIGN)
-                        .requestMatchers(HttpMethod.GET, "/api/user", "/api/user/roles")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/user",
+                                "/api/user/roles",
+                                "/api/roles",
+                                "/api/roles/*/permissions",
+                                "/api/permissions")
                         .hasAnyAuthority(PermissionConstants.USER_READ)
-                        .requestMatchers(HttpMethod.HEAD, "/api/user", "/api/user/roles")
+                        .requestMatchers(HttpMethod.HEAD,
+                                "/api/user",
+                                "/api/user/roles",
+                                "/api/roles",
+                                "/api/roles/*/permissions",
+                                "/api/permissions")
                         .hasAnyAuthority(PermissionConstants.USER_READ)
                         .requestMatchers(HttpMethod.POST, "/api/user/role/revoke")
                         .hasAuthority(PermissionConstants.USER_ROLE_REVOKE)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/permissions/assign")
+                        .hasAnyAuthority(PermissionConstants.USER_PERMISSION_ASSIGN)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/permissions/revoke")
+                        .hasAnyAuthority(PermissionConstants.USER_PERMISSION_REVOKE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

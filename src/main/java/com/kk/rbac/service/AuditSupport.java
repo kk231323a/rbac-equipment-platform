@@ -127,6 +127,20 @@ public class AuditSupport {
                 log.error("角色变更审计明细生成失败，异常类型：{}",
                         e.getClass().getSimpleName());
             }
+        }else if (AuditConstants.USER_PERMISSION_ASSIGN.equals(route.action())
+                || AuditConstants.USER_PERMISSION_REVOKE.equals(route.action())) {
+            try {
+                var details = new LinkedHashMap<String, Integer>();
+                details.put("roleId", route.resourceId());
+                details.put(
+                        "permissionId",
+                        positiveId(request.getParameter("permissionId"))
+                );
+                auditLog.setDetails(objectMapper.writeValueAsString(details));
+            } catch (JsonProcessingException | RuntimeException exception) {
+                log.error("角色权限审计明细生成失败，异常类型：{}",
+                        exception.getClass().getSimpleName());
+            }
         }
         markHandled(request, route.action());
         independent(auditLog);
@@ -192,6 +206,8 @@ public class AuditSupport {
             case "/api/user/disable" -> AuditConstants.USER_DISABLE;
             case "/api/user/role/assign" -> AuditConstants.USER_ROLE_ASSIGN;
             case "/api/user/role/revoke" -> AuditConstants.USER_ROLE_REVOKE;
+            case "/api/permissions/assign" -> AuditConstants.USER_PERMISSION_ASSIGN;
+            case "/api/permissions/revoke" -> AuditConstants.USER_PERMISSION_REVOKE;
             default -> null;
         };
         if (action == null) {
@@ -215,6 +231,14 @@ public class AuditSupport {
         }
         if (AuditConstants.EQUIPMENT_CREATE.equals(action)) {
             return new Route(action, AuditConstants.EQUIPMENT, null, path);
+        }
+        if (AuditConstants.USER_PERMISSION_ASSIGN.equals(action)||AuditConstants.USER_PERMISSION_REVOKE.equals(action)) {
+            return new Route(
+                    action,
+                    AuditConstants.ROLE,
+                    positiveId(request.getParameter("roleId")),
+                    path
+            );
         }
         return new Route(action, AuditConstants.BORROW_REQUEST,
                 AuditConstants.BORROW_CREATE.equals(action) ? null : positiveId(request.getParameter("requestId")), path);

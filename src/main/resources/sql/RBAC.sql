@@ -366,3 +366,38 @@ WHERE r.role_code = 'admin'
       WHERE rp.role_id = r.id
         AND rp.permission_id = p.id
   );
+START TRANSACTION;
+
+INSERT INTO sys_permission (permission_code, permission_name)
+VALUES ('role:permission:assign', '授予角色权限')
+ON DUPLICATE KEY UPDATE
+    permission_name = '授予角色权限';
+
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+CROSS JOIN sys_permission p
+WHERE r.role_code = 'admin'
+  AND p.permission_code = 'role:permission:assign'
+ON DUPLICATE KEY UPDATE
+    role_id = sys_role_permission.role_id;
+
+COMMIT;
+START TRANSACTION;
+
+INSERT INTO sys_permission (permission_code, permission_name)
+VALUES ('role:permission:revoke', '撤销角色权限')
+ON DUPLICATE KEY UPDATE
+    permission_name = '撤销角色权限';
+
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+CROSS JOIN sys_permission p
+WHERE r.role_code = 'admin'
+  AND p.permission_code = 'role:permission:revoke'
+ON DUPLICATE KEY UPDATE
+    role_id = sys_role_permission.role_id;
+
+COMMIT;
+

@@ -15,6 +15,8 @@ public final class PermissionConstants {
     public static final String USER_READ = "user:read";
     public static final String USER_ROLE_ASSIGN = "user:role:assign";
     public static final String USER_ROLE_REVOKE = "user:role:revoke";
+    public static final String USER_PERMISSION_ASSIGN = "role:permission:assign";
+    public static final String USER_PERMISSION_REVOKE = "role:permission:revoke";
 
 
     private PermissionConstants() {

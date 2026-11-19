@@ -42,12 +42,30 @@ mvn spring-boot:run
 - 我的申请：读取普通数组，使用申请 `id` 操作，只展示后端给出的设备 ID。`pending`、`approved` 可以取消，`approved` 可以确认领用，操作最终仍由后端判定。
 - 待审批：读取分页结果，以 `requestId` 批准或拒绝。应还时间保持本地 `YYYY-MM-DDTHH:mm:ss` 字符串，不转换成 UTC；审批权限使用后端实际的 `borrow:approved`。
 - 归还确认：查询已领用申请，由有 `borrow:return` 权限的账号调用确认归还，不增加借用人申请归还步骤。
-- 用户与角色：用户分页、启用禁用、查看已有角色、按真实角色 ID 分配及撤销角色。后端尚未提供全部角色目录，因此没有预设角色选项；已有角色列表显示真实角色 ID。当前账号不展示修改自身启用状态或撤销自身角色的按钮。
+- 用户与角色：用户分页、启用禁用、查看已有角色、按真实角色 ID 分配及撤销角色。当前页面仍手填角色 ID；后端已新增角色目录接口，前端尚待接入。已有角色列表显示真实角色 ID。当前账号不展示修改自身启用状态或撤销自身角色的按钮。
 - 审计：分页读取操作人、动作、资源、结果和时间，展开后显示错误信息及操作明细。后端内容以文本渲染。
 
 返回值按 `{ code, message, data }` 解析，分页按 `data.records`、`data.total` 解析。申请状态使用 `pending`、`approved`、`received`、`returned`、`rejected`、`cancel`。身份由后端确定，不提交 `operatorId`、审批人或借用人身份。
 
 需要登录的请求携带 Bearer Token。401 清理登录状态并跳转登录页，403 提示权限不足并重新读取权限，409 展示后端提示并刷新当前列表。列表提供加载、空数据、失败重试，提交期间锁定重复操作。前端菜单与按钮控制用于交互提示，最终授权、资源归属和业务状态仍由后端校验。
+
+## 角色与权限管理接口（待前端接入）
+
+以下是 2026-11-19 新增后端代码的接口合同，后端已完成源码检查，并使用 Java 17 执行 mvn -o "-DskipTests" package 编译打包成功，测试跳过；真实接口联调尚待进行，当前前端没有对接这些接口。前端改动另行实施，不能将下面的接入约定理解为页面已完成。
+
+- GET /api/roles：查询角色目录，data 为数组，元素包含 id、roleCode、roleName。
+- GET /api/permissions：查询全部权限目录，data 为数组，元素包含 id、permissionCode、permissionName。
+- GET /api/roles/{roleId}/permissions：查询指定角色已有权限，data 的结构与权限目录一致。角色不存在返回 404，角色存在但没有权限返回成功和空数组；非法角色 ID 返回 400。
+- 上面三类查询的 GET、HEAD 均要求 user:read 权限。角色与权限目录是普通数组，不按分页结果解析。
+- POST /api/permissions/assign?roleId={roleId}&permissionId={permissionId}：给角色授予一项权限，要求 role:permission:assign；重复授予返回 409。
+- POST /api/permissions/revoke?roleId={roleId}&permissionId={permissionId}：撤销角色的一项权限，要求 role:permission:revoke；角色未拥有该权限或已被撤销返回 409。
+- 两个写接口均通过查询参数传入 roleId、permissionId，成功返回统一响应且 data 为 null。非法或缺失 ID 返回 400，角色或权限不存在返回 404；不提交 operatorId，不使用 JSON 请求体传递这两个参数。
+
+接入时，用户角色分配从 GET /api/roles 的真实目录中选择角色；角色权限配置从 GET /api/permissions 读取选项，再用该角色已有权限的 ID 集合设置勾选状态。当前登录用户权限接口 /api/auth/permissions 仍只返回权限码数组，用于菜单和按钮控制，不作为全部权限目录。
+
+保存角色权限时，按新增项分别调用 assign、按移除项分别调用 revoke。当前后端单次请求只变更一条关联，多个请求不是一个原子批量操作；部分失败时重新读取实际角色权限并展示结果，不直接提示整批保存成功。变更后刷新角色数据及当前用户权限；一个用户的其他角色仍可能提供相同权限，撤销某个角色的一项权限不必然使该用户失去此权限。
+
+授予、撤销的后端审计均以 sys_role 为资源，resourceId 为角色 ID，details 包含 roleId、permissionId，操作人由服务端登录主体确定。界面通过权限码决定入口和按钮显示，后端仍执行真正的授权校验。
 
 ## 构建与部署
 
@@ -78,7 +96,7 @@ pnpm preview
 - 使用 Java 17 执行 `mvn -o process-resources` 成功；`target/classes` 中不存在 `frontend`，`application.yml`、三个 Mapper XML 和 `sql/RBAC.sql` 均已复制，内容保持一致。
 - 本轮没有启动后端或 Redis，没有重新执行登录及业务接口联调。
 
-按开发者要求，Redis 启动及登录后的真实业务联调留待稍后进行。尚未验证的内容包括：正确账号登录后的权限加载和退出，设备新增编辑，借用申请到审批、领用、归还的闭环，以及真实账号的角色变更和 403／409 反馈。不能将本次构建与隔离测试通过表述为这些流程已验收。
+上述迁移阶段按开发者要求暂缓 Redis 启动及登录后的真实业务联调。当时尚未验证正确账号登录后的权限加载和退出、设备新增编辑、借用申请到审批/领用/归还的闭环，以及真实账号的角色变更和 403／409 反馈；不能将当时的构建与隔离测试通过表述为这些流程已验收。后续虚拟机部署记录见 [部署说明](../../../../deploy/README.md)，本批新增角色与权限管理接口的真实联调仍未进行。
 
 后端针对性测试命令（使用 Java 17）：
 

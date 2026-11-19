@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kk.rbac.mapper.SysPermissionMapper">
+
+    <select id="selectAllPermissions"
+            resultType="com.kk.rbac.vo.PermissionVO">
+        <!-- 查询 SQL -->
+        select p.id,p.permission_code as permissionCode,
+        p.permission_name as permissionName
+        from sys_permission p
+        order by id asc
+    </select>
+
+</mapper>

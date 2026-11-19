@@ -13,4 +13,18 @@
         where ur.user_id=#{userId}
         ORDER BY r.id ASC
     </select>
+    <select id="selectAllRoles" resultType="com.kk.rbac.vo.RoleVO">
+        select r.id,
+        r.role_code as roleCode,
+        r.role_name as roleName
+        from sys_role r
+        order by r.id asc
+    </select>
+    <select id="selectPermissionsByRoleId" resultType="com.kk.rbac.vo.PermissionVO">
+        select p.id,p.permission_code as permissionCode,p.permission_name as permissionName
+        from sys_permission p
+        where p.id in
+        (select rp.permission_id from sys_role_permission rp where rp.role_id=#{roleId})
+        ORDER BY p.id ASC
+    </select>
 </mapper>

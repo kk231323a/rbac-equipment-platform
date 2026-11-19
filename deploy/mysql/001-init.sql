@@ -129,7 +129,9 @@ INSERT INTO sys_permission (permission_code, permission_name) VALUES
   ('user:disable', '禁用用户'),
   ('user:read', '查看用户'),
   ('user:role:assign', '分配用户角色'),
-  ('user:role:revoke', '撤销用户角色');
+  ('user:role:revoke', '撤销用户角色'),
+  ('role:permission:assign', '授予角色权限'),
+  ('role:permission:revoke', '撤销角色权限');
 
 INSERT INTO sys_role_permission (role_id, permission_id)
 SELECT r.id, p.id
@@ -142,7 +144,8 @@ WHERE (r.role_code = 'borrower' AND p.permission_code IN (
          'equipment:read', 'equipment:create', 'equipment:update',
          'borrow:approved', 'borrow:return', 'audit:read',
          'user:enable', 'user:disable', 'user:read',
-         'user:role:assign', 'user:role:revoke'
+         'user:role:assign', 'user:role:revoke',
+         'role:permission:assign', 'role:permission:revoke'
       ));
 
 INSERT INTO sys_user (account, name, password_hash, enable) VALUES

@@ -15,6 +15,7 @@ public final class AuditConstants {
     public static final String BORROW_REQUEST = "borrow_request";
     public static final String EQUIPMENT = "equipment";
     public static final String USER = "sys_user";
+    public static final String ROLE = "sys_role";
     public static final String SUCCESS = "success";
     public static final String FAILURE = "failure";
     public static final String OPERATOR_USER = "user";
@@ -24,6 +25,8 @@ public final class AuditConstants {
     public static final String USER_DISABLE = "user:disable";
     public static final String USER_ROLE_ASSIGN = "user:role:assign";
     public static final String USER_ROLE_REVOKE = "user:role:revoke";
+    public static final String USER_PERMISSION_ASSIGN = "role:permission:assign";
+    public static final String USER_PERMISSION_REVOKE = "role:permission:revoke";
 
     private AuditConstants() {
     }
