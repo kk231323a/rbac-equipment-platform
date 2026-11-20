@@ -113,6 +113,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,
                                 "/api/permissions/revoke")
                         .hasAnyAuthority(PermissionConstants.USER_PERMISSION_REVOKE)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/user/create")
+                        .hasAnyAuthority(PermissionConstants.USER_CREATE)
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

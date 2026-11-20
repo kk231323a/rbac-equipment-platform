@@ -208,6 +208,7 @@ public class AuditSupport {
             case "/api/user/role/revoke" -> AuditConstants.USER_ROLE_REVOKE;
             case "/api/permissions/assign" -> AuditConstants.USER_PERMISSION_ASSIGN;
             case "/api/permissions/revoke" -> AuditConstants.USER_PERMISSION_REVOKE;
+            case "/api/user/create" -> AuditConstants.USER_CREATE;
             default -> null;
         };
         if (action == null) {
@@ -232,6 +233,9 @@ public class AuditSupport {
         if (AuditConstants.EQUIPMENT_CREATE.equals(action)) {
             return new Route(action, AuditConstants.EQUIPMENT, null, path);
         }
+        if (AuditConstants.USER_CREATE.equals(action)) {
+            return new Route(action, AuditConstants.USER, null, path);
+        }
         if (AuditConstants.USER_PERMISSION_ASSIGN.equals(action)||AuditConstants.USER_PERMISSION_REVOKE.equals(action)) {
             return new Route(
                     action,
@@ -240,6 +244,8 @@ public class AuditSupport {
                     path
             );
         }
+
+
         return new Route(action, AuditConstants.BORROW_REQUEST,
                 AuditConstants.BORROW_CREATE.equals(action) ? null : positiveId(request.getParameter("requestId")), path);
     }

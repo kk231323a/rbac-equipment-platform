@@ -57,10 +57,13 @@ export const permission = {
   borrowApprove: 'borrow:approved',
   borrowReturn: 'borrow:return',
   userRead: 'user:read',
+  userCreate: 'user:create',
   userEnable: 'user:enable',
   userDisable: 'user:disable',
   roleAssign: 'user:role:assign',
   roleRevoke: 'user:role:revoke',
+  rolePermissionAssign: 'role:permission:assign',
+  rolePermissionRevoke: 'role:permission:revoke',
   auditRead: 'audit:read',
 }
 

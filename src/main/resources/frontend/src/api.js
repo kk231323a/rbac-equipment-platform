@@ -116,11 +116,25 @@ export const borrowApi = {
 
 export const userApi = {
   list: (params) => request('/api/user', { params }),
+  create: ({ account, name, password }) => request('/api/user/create', {
+    method: 'POST', body: { account, name, password },
+  }),
   enable: (userId) => post('/api/user/enable', { userId }),
   disable: (userId) => post('/api/user/disable', { userId }),
   roles: (userId) => request('/api/user/roles', { params: { userId } }),
   assign: (userId, roleId) => post('/api/user/role/assign', { userId, roleId }),
   revoke: (userId, roleId) => post('/api/user/role/revoke', { userId, roleId }),
+}
+
+export const roleApi = {
+  list: () => request('/api/roles'),
+  permissions: (roleId) => request(`/api/roles/${roleId}/permissions`),
+}
+
+export const permissionApi = {
+  list: () => request('/api/permissions'),
+  assign: (roleId, permissionId) => post('/api/permissions/assign', { roleId, permissionId }),
+  revoke: (roleId, permissionId) => post('/api/permissions/revoke', { roleId, permissionId }),
 }
 
 export const auditApi = {

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.dto.UserCreateRequest;
 import com.kk.rbac.entity.SysRole;
 import com.kk.rbac.entity.SysUser;
 import com.kk.rbac.entity.SysUserRole;
@@ -18,9 +19,11 @@ import com.kk.rbac.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
 
@@ -33,6 +36,8 @@ public class UserService {
 
     @Autowired
     private SysUserRoleMapper sysUserRoleMapper;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Transactional
     @AuditOperation(
@@ -123,6 +128,7 @@ public class UserService {
             throw new BusinessException(500, "角色分配失败");
         }
     }
+
     public List<RoleVO> listUserRoles(Integer userId) {
         if (userId == null || userId <= 0) {
             throw new BusinessException(400, "用户ID不能为空且必须大于0");
@@ -134,6 +140,7 @@ public class UserService {
 
         return sysRoleMapper.selectRolesByUserId(userId);
     }
+
     @AuditOperation(
             actionCode = AuditConstants.USER_ROLE_REVOKE,
             resourceType = AuditConstants.USER,
@@ -168,5 +175,37 @@ public class UserService {
         if (rows != 1) {
             throw new BusinessException(409, "用户未拥有该角色或已被撤销");
         }
+    }
+
+    @AuditOperation(actionCode = AuditConstants.USER_CREATE,
+            resourceType = AuditConstants.USER,
+            resourceId = "#result",
+            independent = true
+    )
+    public Integer createUser(UserCreateRequest request) {
+        String password = request.getPassword();
+
+        if (password.getBytes(StandardCharsets.UTF_8).length > 72) {//BCrypt 最多接受 72 个 UTF-8 字节
+            throw new BusinessException(400, "密码过长");
+        }
+
+        SysUser user = new SysUser();
+        user.setAccount(request.getAccount());
+        user.setName(request.getName());
+        user.setEnable(true);
+        password = passwordEncoder.encode(password);
+        user.setPasswordHash(password);
+        int result;
+        try {
+            result = sysUserMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(409, "用户已存在");
+        }
+
+        if (result != 1) {
+            throw new BusinessException(500, "插入失败");
+        }
+        return user.getId();
+
     }
 }

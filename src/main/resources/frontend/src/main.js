@@ -1,6 +1,8 @@
 import { createApp, watch } from 'vue'
 import {
   ElButton,
+  ElCheckbox,
+  ElCheckboxGroup,
   ElConfigProvider,
   ElDatePicker,
   ElDialog,
@@ -17,7 +19,8 @@ import './styles.css'
 
 const app = createApp(App)
 for (const component of [
-  ElButton, ElConfigProvider, ElDatePicker, ElDialog, ElInput, ElOption, ElPagination, ElSelect,
+  ElButton, ElCheckbox, ElCheckboxGroup, ElConfigProvider, ElDatePicker, ElDialog, ElInput, ElOption,
+  ElPagination, ElSelect,
 ]) {
   app.component(component.name, component)
 }

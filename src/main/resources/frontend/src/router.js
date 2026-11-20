@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Box, Notebook, RefreshLeft, Stamp, Tickets, User } from '@element-plus/icons-vue'
+import { Box, Key, Notebook, RefreshLeft, Stamp, Tickets, User } from '@element-plus/icons-vue'
 import { refreshPermissions } from './api.js'
 import { can, permission, session } from './session.js'
 
@@ -29,6 +29,11 @@ export const navigation = [
     name: 'users', path: 'users', label: '用户与角色', group: '系统管理', icon: User,
     description: '管理账号启停与用户角色', permission: permission.userRead,
     component: () => import('./views/UsersView.vue'),
+  },
+  {
+    name: 'role-permissions', path: 'role-permissions', label: '角色权限', group: '系统管理', icon: Key,
+    description: '查看角色并配置权限授予与撤销', permission: permission.userRead,
+    component: () => import('./views/RolePermissionsView.vue'),
   },
   {
     name: 'audit', path: 'audit', label: '审计日志', group: '系统管理', icon: Notebook,

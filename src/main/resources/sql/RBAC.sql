@@ -400,4 +400,15 @@ ON DUPLICATE KEY UPDATE
     role_id = sys_role_permission.role_id;
 
 COMMIT;
+use rbac;
+INSERT INTO sys_permission (permission_code, permission_name)
+VALUES ('user:create', '创建用户')
+ON DUPLICATE KEY UPDATE permission_name = '创建用户';
 
+INSERT INTO sys_role_permission (role_id, permission_id)
+SELECT r.id, p.id
+FROM sys_role r
+         CROSS JOIN sys_permission p
+WHERE r.role_code = 'admin'
+  AND p.permission_code = 'user:create'
+ON DUPLICATE KEY UPDATE role_id = sys_role_permission.role_id;
