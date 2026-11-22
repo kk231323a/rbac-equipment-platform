@@ -3,6 +3,7 @@ package com.kk.rbac.controller;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
+import com.kk.rbac.security.UserAuthState;
 import com.kk.rbac.service.AuditSupport;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.dto.LoginRequest;
@@ -36,9 +37,6 @@ public class AuthController {
     private TokenRevocationService tokenRevocationService;
 
     @PostMapping("/login")//登录接口
-    @AuditOperation(actionCode = AuditConstants.LOGIN, resourceType = AuditConstants.USER,
-            resourceId = "#result?.data()?.id()", operatorId = "#result?.data()?.id()",
-            operatorAccount = "#loginRequest.account", independent = true)
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest,
                                              HttpServletRequest request) {
         request.setAttribute(AuditSupport.LOGIN_ACCOUNT_ATTRIBUTE, loginRequest.getAccount());
@@ -47,7 +45,8 @@ public class AuthController {
                 loginRequest.getAccount(),
                 loginRequest.getPassword()
         );
-        String accessToken= jwtService.createToken(user.getId());
+        UserAuthState state = authService.prepareAuthState(user);
+        String accessToken = jwtService.createToken(user.getId(), state.tokenVersion());
 
         LoginResponse response = new LoginResponse(
                 user.getId(),

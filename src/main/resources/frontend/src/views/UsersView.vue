@@ -131,8 +131,8 @@ function createUser() {
     createError.value = '初始密码不能为空'
     return
   }
-  if (data.password.length < 8 || data.password.length > 72) {
-    createError.value = '密码长度应为8到72个字符'
+  if (data.password.length < 6 || data.password.length > 72) {
+    createError.value = '密码长度应为6到72个字符'
     return
   }
   if (new TextEncoder().encode(data.password).length > 72) {

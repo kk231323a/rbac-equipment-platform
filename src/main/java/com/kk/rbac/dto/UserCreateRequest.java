@@ -22,6 +22,7 @@ public class UserCreateRequest {
     private String name;
 
     @NotBlank(message = "初始密码不能为空")
-    @Size(min = 8, max = 72, message = "密码长度应为8到72个字符")
+    @Size(min = 6, max = 72, message = "密码长度应为6到72个字符")
+    @Pattern(regexp = "\\p{ASCII}+", message = "密码仅支持单字节 ASCII 字符")
     private String password;
 }

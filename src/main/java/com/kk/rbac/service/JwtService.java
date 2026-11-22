@@ -18,10 +18,11 @@ public class JwtService {
     private final SecretKey jwtSigningKey;
     private final JwtProperties properties;
 
-    public String createToken(Integer userId) {//生成JWT token
+    public String createToken(Integer userId,Long tokenVersion) {//生成JWT token
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("用户ID必须为正数");
         }
+
 
         Instant now = Instant.now();
         Instant expiresAt = now.plus(properties.getTtl());
@@ -31,6 +32,7 @@ public class JwtService {
                 .id(UUID.randomUUID().toString())//标识token
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiresAt))
+                .claim("ver",tokenVersion)
                 .signWith(jwtSigningKey, Jwts.SIG.HS256)
                 .compact();
     }

@@ -2,6 +2,7 @@ package com.kk.rbac.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.kk.rbac.common.ApiResponse;
+import com.kk.rbac.dto.PasswordChangeRequest;
 import com.kk.rbac.dto.UserCreateRequest;
 import com.kk.rbac.security.LoginPrincipal;
 import com.kk.rbac.service.UserService;
@@ -76,5 +77,10 @@ public class UserController {
 
 
         return ApiResponse.success(userService.createUser(request));
+    }
+    @PostMapping("/password/change")
+    public ApiResponse<Void> changePassword(@RequestBody@Valid PasswordChangeRequest request){
+        userService.changePassword(request);
+        return ApiResponse.success();
     }
 }

@@ -11,7 +11,7 @@ import java.time.Instant;
 @Service
 public class TokenRevocationService {
 
-    private static final String KEY_PREFIX = "auth:revoked:";
+    public static final String KEY_PREFIX = "auth:revoked:";
     @Autowired
     private StringRedisTemplate redisTemplate;
 

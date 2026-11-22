@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
+import com.kk.rbac.dto.PasswordChangeRequest;
 import com.kk.rbac.dto.UserCreateRequest;
 import com.kk.rbac.entity.SysRole;
 import com.kk.rbac.entity.SysUser;
@@ -18,10 +19,13 @@ import com.kk.rbac.vo.RoleVO;
 import com.kk.rbac.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -32,7 +36,11 @@ public class UserService {
     @Autowired
     public SysUserMapper sysUserMapper;
     @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
     private SysRoleMapper sysRoleMapper;
+    @Autowired
+    private UserAuthStateService userAuthStateService;
 
     @Autowired
     private SysUserRoleMapper sysUserRoleMapper;
@@ -68,13 +76,33 @@ public class UserService {
         if (userId == null || userId <= 0) {
             throw new BusinessException(400, "用户ID不能为空且必须大于0");
         }
+        SysUser user = sysUserMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+        userAuthStateService.markUpdating(user);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                userAuthStateService.finishEnabledUpdate(userId, enable);
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == STATUS_ROLLED_BACK) {
+                    userAuthStateService.markNotUpdating(userId);
+                }
+            }
+        });
 
         LambdaUpdateWrapper<SysUser> update = new LambdaUpdateWrapper<>();
         update.eq(SysUser::getId, userId).set(SysUser::getEnable, enable);
         int rows = sysUserMapper.update(update);
-        if (rows != 1) {
-            throw new BusinessException(404, "用户不存在");
-        }
+        if (rows!=1)throw new BusinessException(500,"更新用户状态失败");
+
+
+
     }
 
     public IPage<UserVO> listUsers(Integer pageNum, Integer pageSize) {
@@ -206,6 +234,32 @@ public class UserService {
             throw new BusinessException(500, "插入失败");
         }
         return user.getId();
+
+    }
+
+    public void changePassword(PasswordChangeRequest request) {
+        String account = request.getAccount();
+        LambdaQueryWrapper<SysUser> query = new LambdaQueryWrapper<>();
+        query.eq(SysUser::getAccount, account);
+        SysUser userAlive = sysUserMapper.selectOne(query);
+        if (userAlive == null)
+            throw new BusinessException(401, "账号或密码错误");
+        String realPassword = userAlive.getPasswordHash();
+        if (!passwordEncoder.matches(request.getOldPassword(), realPassword))
+            throw new BusinessException(401, "账号或密码错误");
+        userAuthStateService.markUpdating(userAlive);
+
+
+        LambdaUpdateWrapper<SysUser> update = new LambdaUpdateWrapper<>();
+        update.eq(SysUser::getAccount, account)
+                .eq(SysUser::getPasswordHash, realPassword)
+                .set(SysUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword()));
+        int result = sysUserMapper.update(null, update);
+        if (result != 1) {
+            userAuthStateService.markNotUpdating(userAlive.getId());
+            throw new BusinessException(500, "修改密码失败");
+        }
+        userAuthStateService.incrJwtVersion(userAlive.getId());
 
     }
 }

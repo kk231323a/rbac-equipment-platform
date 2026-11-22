@@ -9,6 +9,8 @@ import com.kk.rbac.service.AuthService;
 import com.kk.rbac.service.JwtService;
 import com.kk.rbac.service.PermissionService;
 import com.kk.rbac.service.TokenRevocationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,16 +21,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
+    @Autowired
+    JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthEntryPoint authEntryPoint,
-            JwtService jwtService,
-            TokenRevocationService tokenRevocationService,
-            PermissionService permissionService,
-            AuthDeniedHandler authDeniedHandler,
-            AuthService authService
+            AuthDeniedHandler authDeniedHandler
     ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
@@ -43,6 +43,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/health"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/user/password/change").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/borrow/borrowedList")//允许借用人查看自己的借用申请列表
                         .authenticated()
@@ -119,19 +121,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(authEntryPoint)
-                        .accessDeniedHandler(authDeniedHandler)
+                        .authenticationEntryPoint(authEntryPoint)//认证失败组件
+                        .accessDeniedHandler(authDeniedHandler)//权限不足组件
                 )
                 .addFilterBefore(
-                        new JwtAuthFilter(
-                                jwtService,
-                                authEntryPoint,
-                                tokenRevocationService,
-                                permissionService,
-                                authService
-                        ),
+                        jwtAuthFilter,
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .build();
+    }
+    @Bean
+    public FilterRegistrationBean<JwtAuthFilter> jwtAuthFilterRegistration(JwtAuthFilter filter) {
+        FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 }
