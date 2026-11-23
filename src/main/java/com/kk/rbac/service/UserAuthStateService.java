@@ -204,4 +204,31 @@ public class UserAuthStateService {
             throw new BusinessException(503, "用户启停状态更新未完成");
         }
     }
+    public void finishPermissionsUpdate(Integer userId){
+        String json = redisTemplate.opsForValue().get("auth:user:" + userId);
+        if (json == null) throw new BusinessException(503,"状态更新失败");//判断为null防止进入下面反序列化操作报异常
+
+        UserAuthState state = null;
+        try {
+            state = objectMapper.readValue(json, UserAuthState.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        UserAuthState newState = new UserAuthState(
+                state.enabled(),
+                state.tokenVersion(),
+                permissionService.getPermissionCodes(userId),
+                true
+        );
+        String newJson = null;
+        try {
+            newJson = objectMapper.writeValueAsString(newState);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        Long result = redisTemplate.execute(INCRJWTVERSION_SCRIPT, List.of("auth:user:" + userId), json, newJson);
+        if (!Long.valueOf(1L).equals(result)) {
+            throw new BusinessException(503, "用户权限更新未完成");
+        }
+    }
 }

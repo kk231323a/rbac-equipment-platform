@@ -85,7 +85,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {//校验客户端提交
             );
             return;
         }
-        boolean revoked;
+
 //        检查Token版本及撤销状态
         UserAuthState state;
         try {
@@ -110,17 +110,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {//校验客户端提交
             authEntryPoint.serviceUnavailable(request, response);
             return;
         }
-        boolean enabled;
-        try {
-            enabled = authService.isEnabled(userId);
-        } catch (DataAccessException exception) {
-            logger.error("查询账号状态失败", exception);
-            SecurityContextHolder.clearContext();
-            authEntryPoint.serviceUnavailable(request, response);
-            return;
-        }
 
-        if (!enabled) {
+        if (!state.enabled()) {
             SecurityContextHolder.clearContext();
             authEntryPoint.commence(
                     request,

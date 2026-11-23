@@ -1,11 +1,14 @@
 package com.kk.rbac.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.entity.SysUser;
 import com.kk.rbac.mapper.SysUserMapper;
 import com.kk.rbac.security.UserAuthState;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,10 @@ public class AuthService {
     private UserAuthStateService userAuthStateService;
     @Autowired
     private PermissionService permissionService;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public SysUser authenticate(String account, String rawPassword) {
         LambdaQueryWrapper<SysUser> query = new LambdaQueryWrapper<>();

@@ -139,6 +139,7 @@ public class UserService {
         SysRole role = sysRoleMapper.selectById(roleId);
         if (role == null)
             throw new BusinessException(404, "角色不存在");
+        userAuthStateService.markUpdating(user);
 
         // 为用户分配角色
         SysUserRole userRole = new SysUserRole();
@@ -149,12 +150,16 @@ public class UserService {
         try {
             rows = sysUserRoleMapper.insert(userRole);
         } catch (DuplicateKeyException e) {
+            userAuthStateService.markNotUpdating(userId);
             throw new BusinessException(409, "用户已拥有该角色");
         }
 
         if (rows != 1) {
+            userAuthStateService.markNotUpdating(userId);
             throw new BusinessException(500, "角色分配失败");
         }
+        userAuthStateService.finishPermissionsUpdate(userId);
+        userAuthStateService.markNotUpdating(userId);
     }
 
     public List<RoleVO> listUserRoles(Integer userId) {
@@ -193,16 +198,18 @@ public class UserService {
         SysRole role = sysRoleMapper.selectById(roleId);
         if (role == null)
             throw new BusinessException(404, "角色不存在");
-
-
+        userAuthStateService.markUpdating(user);
         LambdaQueryWrapper<SysUserRole> condition = new LambdaQueryWrapper<>();
         condition.eq(SysUserRole::getUserId, userId)
                 .eq(SysUserRole::getRoleId, roleId);
 
         int rows = sysUserRoleMapper.delete(condition);
         if (rows != 1) {
+            userAuthStateService.markNotUpdating(userId);
             throw new BusinessException(409, "用户未拥有该角色或已被撤销");
         }
+        userAuthStateService.finishPermissionsUpdate(userId);
+        userAuthStateService.markNotUpdating(userId);
     }
 
     @AuditOperation(actionCode = AuditConstants.USER_CREATE,
