@@ -82,7 +82,7 @@ public class UserAuthStateService {
         return redisTemplate.opsForValue().setIfAbsent("auth:user:" + userId, json);
     }
 
-    public void markUpdating(SysUser user) {
+    public long markUpdating(SysUser user) {
         Integer userId = user.getId();
         String key = "auth:user:" + userId;
         String json = redisTemplate.opsForValue().get(key);
@@ -106,7 +106,7 @@ public class UserAuthStateService {
             if (!Boolean.TRUE.equals(inserted)) {
                 throw new BusinessException(503, "用户认证状态标记失败，请稍后重试");
             }
-            return;
+            return initialState.tokenVersion();
         }
         UserAuthState state = null;
         try {
@@ -133,6 +133,7 @@ public class UserAuthStateService {
         if (!Long.valueOf(1L).equals(result)) {
             throw new BusinessException(503, "用户认证状态更新未完成");
         }
+        return state.tokenVersion();
 
 
     }
@@ -168,7 +169,7 @@ public class UserAuthStateService {
 
     }
 
-    public void incrJwtVersion(Integer userId) {
+    public void incrJwtVersion(Integer userId,long targetVersion) {
         String json = redisTemplate.opsForValue().get("auth:user:" + userId);
         if (json == null) throw new BusinessException(503,"状态更新失败");//判断为null防止进入下面反序列化操作报异常
 
@@ -178,7 +179,12 @@ public class UserAuthStateService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        UserAuthState newState = new UserAuthState(state.enabled(), state.tokenVersion() + 1, state.permissions(), false);
+        long currentVersion = state.tokenVersion();
+        if (currentVersion >= targetVersion) {
+            return;
+        }
+
+        UserAuthState newState = new UserAuthState(state.enabled(), targetVersion, state.permissions(), false);
         String newJson = null;
         try {
             newJson = objectMapper.writeValueAsString(newState);

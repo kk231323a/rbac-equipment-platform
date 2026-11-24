@@ -12,6 +12,7 @@ import com.kk.rbac.dto.UserCreateRequest;
 import com.kk.rbac.entity.SysRole;
 import com.kk.rbac.entity.SysUser;
 import com.kk.rbac.entity.SysUserRole;
+import com.kk.rbac.mapper.AuthStateSyncTaskMapper;
 import com.kk.rbac.mapper.SysRoleMapper;
 import com.kk.rbac.mapper.SysUserMapper;
 import com.kk.rbac.mapper.SysUserRoleMapper;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -46,6 +48,10 @@ public class UserService {
     private SysUserRoleMapper sysUserRoleMapper;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthStateSyncTaskMapper authStateSyncTaskMapper;
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     @Transactional
     @AuditOperation(
@@ -99,8 +105,7 @@ public class UserService {
         LambdaUpdateWrapper<SysUser> update = new LambdaUpdateWrapper<>();
         update.eq(SysUser::getId, userId).set(SysUser::getEnable, enable);
         int rows = sysUserMapper.update(update);
-        if (rows!=1)throw new BusinessException(500,"更新用户状态失败");
-
+        if (rows != 1) throw new BusinessException(500, "更新用户状态失败");
 
 
     }
@@ -254,19 +259,28 @@ public class UserService {
         String realPassword = userAlive.getPasswordHash();
         if (!passwordEncoder.matches(request.getOldPassword(), realPassword))
             throw new BusinessException(401, "账号或密码错误");
-        userAuthStateService.markUpdating(userAlive);
-
-
+        //开始密码修改业务
         LambdaUpdateWrapper<SysUser> update = new LambdaUpdateWrapper<>();
         update.eq(SysUser::getAccount, account)
                 .eq(SysUser::getPasswordHash, realPassword)
                 .set(SysUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword()));
-        int result = sysUserMapper.update(null, update);
-        if (result != 1) {
-            userAuthStateService.markNotUpdating(userAlive.getId());
-            throw new BusinessException(500, "修改密码失败");
-        }
-        userAuthStateService.incrJwtVersion(userAlive.getId());
+        Integer userId = userAlive.getId();
+//        修改前更改redis中状态
+        long targetVersion = userAuthStateService.markUpdating(userAlive) + 1;
+
+        transactionTemplate.executeWithoutResult(status -> {
+            // 在这里注册事务回调，确认回滚后才解除 updating。
+
+            if (sysUserMapper.update(null, update) != 1) {
+                throw new BusinessException(500, "修改密码失败");
+            }
+
+            authStateSyncTaskMapper.save(userId, targetVersion);
+        });
+
+        userAuthStateService.incrJwtVersion(userId,targetVersion);//如果这段代码正常执行，则redis中的状态就能被正常修改，就不用入库，继续后面的删除库中存档
+        //如果redis挂了，上面这段代码就会报错，下面这段删除就不会执行成功
+        authStateSyncTaskMapper.delete(userId, targetVersion);
 
     }
 }

@@ -1,6 +1,8 @@
 package com.kk.rbac.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kk.rbac.common.annotation.AuditOperation;
 import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
@@ -12,6 +14,7 @@ import com.kk.rbac.vo.PermissionVO;
 import com.kk.rbac.vo.RoleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +29,20 @@ public class RoleService {
 
     @Autowired
     private SysRolePermissionMapper sysRolePermissionMapper;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public List<RoleVO> getAllRoles() {
+        String json = redisTemplate.opsForValue().get("role");
+        if (json!=null){
+            try {
+                return List.of(objectMapper.readValue(json, RoleVO.class));
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return sysRoleMapper.selectAllRoles();
     }
     public List<PermissionVO> listRolePermissions(Integer roleId) {

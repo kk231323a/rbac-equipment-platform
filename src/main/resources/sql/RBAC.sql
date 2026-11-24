@@ -412,3 +412,8 @@ FROM sys_role r
 WHERE r.role_code = 'admin'
   AND p.permission_code = 'user:create'
 ON DUPLICATE KEY UPDATE role_id = sys_role_permission.role_id;
+
+CREATE TABLE auth_state_sync_task (
+    user_id INT NOT NULL primary key ,
+    target_token_version BIGINT NOT NULL
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
