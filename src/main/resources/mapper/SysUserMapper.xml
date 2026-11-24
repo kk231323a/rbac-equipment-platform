@@ -24,5 +24,12 @@
         from sys_user u
         order by u.id desc
     </select>
+    <select id="selectUsersByRoleId" resultType="com.kk.rbac.entity.SysUser">
+        SELECT u.id, u.enable
+        FROM sys_user_role ur
+        JOIN sys_user u ON u.id = ur.user_id
+        WHERE ur.role_id = #{roleId}
+        ORDER BY u.id
+    </select>
 
 </mapper>

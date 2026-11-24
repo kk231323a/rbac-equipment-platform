@@ -13,4 +13,6 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     List<String> selectPermissionCodesByUserId(Integer userId);
 
     Page<UserVO> selectAllUser(Page<UserVO> page);
+    List<SysUser> selectUsersByRoleId(Integer roleId);
+
 }

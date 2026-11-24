@@ -9,7 +9,6 @@ import com.kk.rbac.common.constants.AuditConstants;
 import com.kk.rbac.common.exception.BusinessException;
 import com.kk.rbac.dto.PasswordChangeRequest;
 import com.kk.rbac.dto.UserCreateRequest;
-import com.kk.rbac.entity.SysRole;
 import com.kk.rbac.entity.SysUser;
 import com.kk.rbac.entity.SysUserRole;
 import com.kk.rbac.mapper.AuthStateSyncTaskMapper;
@@ -138,31 +137,41 @@ public class UserService {
         if (roleId == null || roleId <= 0) {
             throw new BusinessException(400, "角色ID不能为空且必须大于0");
         }
+
         SysUser user = sysUserMapper.selectById(userId);
         if (user == null)
             throw new BusinessException(404, "用户不存在");
-        SysRole role = sysRoleMapper.selectById(roleId);
-        if (role == null)
-            throw new BusinessException(404, "角色不存在");
-        userAuthStateService.markUpdating(user);
+        transactionTemplate.executeWithoutResult(status -> {
+            if (sysRoleMapper.selectIdForUpdate(roleId) == null) {
+                throw new BusinessException(404, "角色不存在");
+            }
 
-        // 为用户分配角色
-        SysUserRole userRole = new SysUserRole();
-        userRole.setUserId(userId);
-        userRole.setRoleId(roleId);
+            userAuthStateService.markUpdating(user);
 
-        int rows;
-        try {
-            rows = sysUserRoleMapper.insert(userRole);
-        } catch (DuplicateKeyException e) {
-            userAuthStateService.markNotUpdating(userId);
-            throw new BusinessException(409, "用户已拥有该角色");
-        }
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status == STATUS_ROLLED_BACK) {
+                        userAuthStateService.markNotUpdating(userId);
+                    }
+                }
+            });
+            // 为用户分配角色
+            SysUserRole userRole = new SysUserRole();
+            userRole.setUserId(userId);
+            userRole.setRoleId(roleId);
 
-        if (rows != 1) {
-            userAuthStateService.markNotUpdating(userId);
-            throw new BusinessException(500, "角色分配失败");
-        }
+            int rows;
+            try {
+                rows = sysUserRoleMapper.insert(userRole);
+            } catch (DuplicateKeyException e) {
+                throw new BusinessException(409, "用户已拥有该角色");
+            }
+
+            if (rows != 1) {
+                throw new BusinessException(500, "角色分配失败");
+            }
+        });
         userAuthStateService.finishPermissionsUpdate(userId);
         userAuthStateService.markNotUpdating(userId);
     }
@@ -200,19 +209,32 @@ public class UserService {
         SysUser user = sysUserMapper.selectById(userId);
         if (user == null)
             throw new BusinessException(404, "用户不存在");
-        SysRole role = sysRoleMapper.selectById(roleId);
-        if (role == null)
-            throw new BusinessException(404, "角色不存在");
-        userAuthStateService.markUpdating(user);
-        LambdaQueryWrapper<SysUserRole> condition = new LambdaQueryWrapper<>();
-        condition.eq(SysUserRole::getUserId, userId)
-                .eq(SysUserRole::getRoleId, roleId);
 
-        int rows = sysUserRoleMapper.delete(condition);
-        if (rows != 1) {
-            userAuthStateService.markNotUpdating(userId);
-            throw new BusinessException(409, "用户未拥有该角色或已被撤销");
-        }
+        transactionTemplate.executeWithoutResult(status -> {
+            if (sysRoleMapper.selectIdForUpdate(roleId) == null) {
+                throw new BusinessException(404, "角色不存在");
+            }
+
+            userAuthStateService.markUpdating(user);
+
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int completionStatus) {
+                    if (completionStatus == STATUS_ROLLED_BACK) {
+                        userAuthStateService.markNotUpdating(userId);
+                    }
+                }
+            });
+
+            LambdaQueryWrapper<SysUserRole> condition = new LambdaQueryWrapper<>();
+            condition.eq(SysUserRole::getUserId, userId)
+                    .eq(SysUserRole::getRoleId, roleId);
+
+            int rows = sysUserRoleMapper.delete(condition);
+            if (rows != 1) {
+                throw new BusinessException(409, "用户未拥有该角色或已被撤销");
+            }
+        });
         userAuthStateService.finishPermissionsUpdate(userId);
         userAuthStateService.markNotUpdating(userId);
     }

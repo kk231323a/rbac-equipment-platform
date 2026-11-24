@@ -27,4 +27,10 @@
         (select rp.permission_id from sys_role_permission rp where rp.role_id=#{roleId})
         ORDER BY p.id ASC
     </select>
+    <select id="selectIdForUpdate" resultType="java.lang.Integer">
+        SELECT id
+        FROM sys_role
+        WHERE id = #{roleId}
+        FOR UPDATE
+    </select>
 </mapper>

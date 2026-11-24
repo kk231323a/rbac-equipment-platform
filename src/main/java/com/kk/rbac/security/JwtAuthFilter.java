@@ -125,21 +125,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {//校验客户端提交
 
 
 //        查询用户权限
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-//        将用户权限代码转换为Spring Security的SimpleGrantedAuthority对象，并添加到权限列表中
-        try {
-            List<String> permissionCodes =
-                    permissionService.getPermissionCodes(userId);
+        List<SimpleGrantedAuthority> authorities = state.permissions().stream()
+                .map(SimpleGrantedAuthority::new)
+                .toList();
 
-            for (String code : permissionCodes) {
-                authorities.add(new SimpleGrantedAuthority(code));
-            }
-        } catch (DataAccessException exception) {
-            logger.error("查询用户权限失败", exception);
-            SecurityContextHolder.clearContext();
-            authEntryPoint.serviceUnavailable(request, response);
-            return;
-        }
+
 
 //        创建一个登录身份对象，包含用户ID、Jti和过期时间
         LoginPrincipal principal = new LoginPrincipal(
