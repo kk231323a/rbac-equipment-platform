@@ -193,7 +193,6 @@ public class AuditSupport {
             return null;
         }
         String action = switch (path) {
-            case "/api/auth/login" -> AuditConstants.LOGIN;
             case "/api/auth/logout" -> AuditConstants.LOGOUT;
             case "/api/equipment/addNew" -> AuditConstants.EQUIPMENT_CREATE;
             case "/api/borrow/request" -> AuditConstants.BORROW_CREATE;

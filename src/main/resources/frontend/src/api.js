@@ -1,4 +1,4 @@
-import { clearSession, session } from './session.js'
+import { clearSession, getLoginVersion, replaceTokens, session } from './session.js'
 
 class ApiError extends Error {
   constructor(status, message) {
@@ -8,15 +8,31 @@ class ApiError extends Error {
   }
 }
 
-async function request(path, { method = 'GET', params, body, authenticated = true } = {}) {
+let tokenRefreshRequest
+
+function sessionIsCurrent(version) {
+  return getLoginVersion() === version
+}
+
+async function request(path, options = {}) {
+  const authenticated = options.authenticated ?? true
+  const context = {
+    authenticated,
+    version: authenticated ? getLoginVersion() : 0,
+    token: authenticated ? session.token : '',
+  }
+  return executeRequest(path, options, context, true)
+}
+
+async function executeRequest(path, options, context, allowRefresh) {
+  const { method = 'GET', params, body } = options
   const url = new URL(path, window.location.origin)
   for (const [key, value] of Object.entries(params ?? {})) {
     if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, value)
   }
 
-  const token = authenticated ? session.token : ''
   const headers = new Headers({ Accept: 'application/json' })
-  if (token) headers.set('Authorization', `Bearer ${token}`)
+  if (context.token) headers.set('Authorization', `Bearer ${context.token}`)
   if (body !== undefined) headers.set('Content-Type', 'application/json')
 
   let response
@@ -35,18 +51,95 @@ async function request(path, { method = 'GET', params, body, authenticated = tru
   }
 
   const status = response.ok ? payload?.code : response.status
-  if (status === 401 && authenticated) clearSession(token)
-  if (status === 403 && authenticated && path !== '/api/auth/permissions') {
+  const accessTokenExpired = response.status === 401 && payload?.code === 40101
+  if (context.authenticated && accessTokenExpired && allowRefresh) {
+    const token = await resolveExpiredToken(context)
+    return executeRequest(path, options, { ...context, token }, false)
+  }
+
+  if (status === 401 && context.authenticated) clearSession(context.token)
+  if (status === 403 && context.authenticated && path !== '/api/auth/permissions') {
     void refreshPermissions().catch(() => {})
   }
 
   if (response.ok && status === 200) return payload.data
-  if (status === 403 && authenticated) {
+  if (status === 403 && context.authenticated) {
     const explanation = payload?.message
     const detail = explanation && explanation !== '无权访问该资源' ? `（${explanation}）` : ''
     throw new ApiError(status, `权限不足${detail}`)
   }
   throw new ApiError(status, payload?.message || (response.ok ? '后端响应格式异常' : `请求失败（HTTP ${response.status}）`))
+}
+
+async function resolveExpiredToken(context) {
+  const { version, token } = context
+  if (!sessionIsCurrent(version)) throw new ApiError(401, '登录状态已变更，请重新操作')
+
+  if (session.token !== token) {
+    if (session.token) return session.token
+    throw new ApiError(401, '登录状态已变更，请重新登录')
+  }
+
+  const refreshToken = session.refreshToken
+  if (!refreshToken) {
+    clearSession(token)
+    throw new ApiError(401, '登录已过期，请重新登录')
+  }
+
+  const newToken = await refreshTokens(version, token, refreshToken)
+  if (!sessionIsCurrent(version) || !session.token) {
+    throw new ApiError(401, '登录状态已变更，请重新登录')
+  }
+  return newToken
+}
+
+function refreshTokens(version, accessToken, refreshToken) {
+  if (tokenRefreshRequest?.version === version
+    && tokenRefreshRequest.accessToken === accessToken
+    && tokenRefreshRequest.refreshToken === refreshToken) {
+    return tokenRefreshRequest.promise
+  }
+
+  const promise = request('/api/auth/refresh', {
+    method: 'POST', body: { refreshToken }, authenticated: false,
+  })
+    .then((data) => {
+      if (typeof data?.accessToken !== 'string' || !data.accessToken
+        || typeof data.refreshToken !== 'string' || !data.refreshToken) {
+        throw new Error('刷新响应缺少有效凭证')
+      }
+      if (!sessionIsCurrent(version)) throw new ApiError(401, '登录状态已变更，请重新操作')
+
+      if (session.token !== accessToken || session.refreshToken !== refreshToken) {
+        if (session.token) return session.token
+        throw new ApiError(401, '登录状态已变更，请重新登录')
+      }
+
+      replaceTokens({
+        expectedToken: accessToken,
+        expectedRefreshToken: refreshToken,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+      })
+      return data.accessToken
+    })
+    .catch((error) => {
+      if (!sessionIsCurrent(version)) throw new ApiError(401, '登录状态已变更，请重新操作')
+      if (error.status === 401) {
+        clearSession(accessToken)
+        throw error
+      }
+      if (error.status === 503 && !error.message.includes('稍后重试')) {
+        throw new ApiError(503, '登录续期失败，请稍后重试')
+      }
+      throw error
+    })
+    .finally(() => {
+      if (tokenRefreshRequest?.promise === promise) tokenRefreshRequest = undefined
+    })
+
+  tokenRefreshRequest = { version, accessToken, refreshToken, promise }
+  return promise
 }
 
 const post = (path, params) => request(path, { method: 'POST', params })
@@ -62,8 +155,9 @@ let permissionsRequest
 
 export function refreshPermissions() {
   const token = session.token
+  const version = getLoginVersion()
   if (!token) return Promise.resolve()
-  if (permissionsRequest?.token === token) return permissionsRequest.promise
+  if (permissionsRequest?.version === version) return permissionsRequest.promise
 
   session.checkingPermissions = true
   const promise = request('/api/auth/permissions')
@@ -71,23 +165,23 @@ export function refreshPermissions() {
       if (!Array.isArray(codes) || !codes.every((code) => typeof code === 'string')) {
         throw new Error('权限码响应格式异常')
       }
-      if (session.token !== token) return
+      if (!sessionIsCurrent(version)) return
       session.permissions = codes
       session.permissionsError = ''
     })
     .catch((error) => {
-      if (session.token === token) {
+      if (sessionIsCurrent(version)) {
         session.permissions = null
         session.permissionsError = error.message
       }
       throw error
     })
     .finally(() => {
-      if (session.token === token) session.checkingPermissions = false
-      if (permissionsRequest?.token === token) permissionsRequest = undefined
+      if (sessionIsCurrent(version)) session.checkingPermissions = false
+      if (permissionsRequest?.version === version) permissionsRequest = undefined
     })
 
-  permissionsRequest = { token, promise }
+  permissionsRequest = { version, promise }
   return promise
 }
 

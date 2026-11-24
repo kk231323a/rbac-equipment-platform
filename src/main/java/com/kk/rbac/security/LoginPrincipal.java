@@ -5,6 +5,7 @@ import java.time.Instant;
 public record LoginPrincipal(
         Integer userId,
         String jti,
-        Instant expiresAt
+        Instant expiresAt,
+        String sid
 ) {
 }

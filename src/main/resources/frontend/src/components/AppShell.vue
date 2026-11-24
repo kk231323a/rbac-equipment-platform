@@ -5,7 +5,7 @@ import { Box, Close, Grid, Menu, SwitchButton } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { authApi } from '../api.js'
 import { navigation } from '../router.js'
-import { can, clearSession, session } from '../session.js'
+import { can, clearSession, getLoginVersion, session } from '../session.js'
 
 const route = useRoute()
 const mobileMenuOpen = ref(false)
@@ -21,10 +21,12 @@ watch(() => route.name, () => { mobileMenuOpen.value = false })
 async function logout() {
   if (loggingOut.value) return
   loggingOut.value = true
-  const token = session.token
+  const loginVersion = getLoginVersion()
   try {
     await authApi.logout()
-    clearSession(token)
+    if (getLoginVersion() === loginVersion) {
+      clearSession(session.token)
+    }
   } catch (error) {
     if (error.status !== 401) ElMessage.error(error.message)
   } finally {

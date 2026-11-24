@@ -6,12 +6,22 @@ function readSession() {
   try {
     const stored = JSON.parse(sessionStorage.getItem(storageKey))
     if (typeof stored?.token === 'string' && Number.isInteger(stored.user?.id)) {
-      return stored
+      return {
+        token: stored.token,
+        refreshToken: typeof stored.refreshToken === 'string' ? stored.refreshToken : '',
+        user: stored.user,
+      }
     }
   } catch {
     // The in-memory session also works when the browser blocks storage.
   }
-  return { token: '', user: null }
+  return { token: '', refreshToken: '', user: null }
+}
+
+let loginVersion = 0
+
+export function getLoginVersion() {
+  return loginVersion
 }
 
 export const session = reactive({
@@ -21,23 +31,43 @@ export const session = reactive({
   checkingPermissions: false,
 })
 
-export function startSession({ accessToken, id, account, name }) {
-  const user = { id, account, name }
-  session.user = user
-  session.token = accessToken
-  session.permissions = null
-  session.permissionsError = ''
-  session.checkingPermissions = false
+function persistSession() {
   try {
-    sessionStorage.setItem(storageKey, JSON.stringify({ token: accessToken, user }))
+    sessionStorage.setItem(storageKey, JSON.stringify({
+      token: session.token,
+      refreshToken: session.refreshToken,
+      user: session.user,
+    }))
   } catch {
     // The active tab can still use the in-memory token.
   }
 }
 
+export function startSession({ accessToken, refreshToken, id, account, name }) {
+  loginVersion += 1
+  const user = { id, account, name }
+  session.user = user
+  session.token = accessToken
+  session.refreshToken = refreshToken
+  session.permissions = null
+  session.permissionsError = ''
+  session.checkingPermissions = false
+  persistSession()
+}
+
+export function replaceTokens({ expectedToken, expectedRefreshToken, accessToken, refreshToken }) {
+  if (session.token !== expectedToken || session.refreshToken !== expectedRefreshToken) return false
+  session.token = accessToken
+  session.refreshToken = refreshToken
+  persistSession()
+  return true
+}
+
 export function clearSession(expectedToken) {
   if (session.token !== expectedToken) return
+  loginVersion += 1
   session.token = ''
+  session.refreshToken = ''
   session.user = null
   session.permissions = null
   session.permissionsError = ''

@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -41,19 +42,26 @@ public class UserAuthStateService {
             throw new IllegalStateException("用户认证状态格式错误", exception);
         }
     }
-    public UserAuthState findForToken(Integer userId, String jti) {
-        List<String> values = redisTemplate.opsForValue().multiGet(List.of(
+    public UserAuthState findForToken(Integer userId, String jti,String sid) {
+        List<String> keys = new ArrayList<>(List.of(
                 "auth:user:" + userId,
                 TokenRevocationService.KEY_PREFIX + jti
         ));
 
-        if (values == null || values.size() != 2) {
+        if (sid != null) {
+            keys.add("auth:refresh:" + sid);
+        }
+        List<String> values = redisTemplate.opsForValue().multiGet(keys);
+
+        if (values == null || values.size() != keys.size()) {
             throw new IllegalStateException("无法读取 Token 认证状态");
         }
 
         String stateJson = values.get(0);
         String revoked = values.get(1);
-        if (stateJson == null || revoked != null) {
+        boolean sessionMissing = sid != null && values.get(2) == null;
+
+        if (sessionMissing||stateJson == null || revoked != null) {
             return null;
         }
 

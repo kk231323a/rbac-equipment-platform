@@ -24,7 +24,9 @@ async function login() {
   submitting.value = true
   try {
     const data = await authApi.login(trimmedAccount, password.value)
-    if (typeof data?.accessToken !== 'string' || !data.accessToken || !Number.isInteger(data.id)) {
+    if (typeof data?.accessToken !== 'string' || !data.accessToken
+      || typeof data.refreshToken !== 'string' || !data.refreshToken
+      || !Number.isInteger(data.id)) {
       throw new Error('登录响应缺少有效的账号或凭证')
     }
     startSession(data)

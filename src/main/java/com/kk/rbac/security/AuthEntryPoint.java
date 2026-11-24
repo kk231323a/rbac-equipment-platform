@@ -3,6 +3,7 @@ package com.kk.rbac.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kk.rbac.common.ApiResponse;
 import com.kk.rbac.service.AuditSupport;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,9 +31,11 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败�
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException {
-        if (auditSupport != null) {
-            auditSupport.httpFailure(request, 401, "未登录或登录已失效", null);
-        }
+        boolean expired = exception.getCause() instanceof ExpiredJwtException;
+        int code = expired ? 40101 : 401;
+        String message = expired ? "访问令牌已过期" : "未登录或登录已失效";
+
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Bearer");
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -40,15 +43,11 @@ public class AuthEntryPoint implements AuthenticationEntryPoint {//认证失败�
 
         objectMapper.writeValue(//将响应内容转换为JSON并写入响应体
                 response.getWriter(),//参数表示响应体的输出流
-                ApiResponse.error(401, "未登录或登录已失效")//要写入响应体的内容，这里是一个错误响应对象，包含状态码和错误信息
+                ApiResponse.error(code,message)//要写入响应体的内容，这里是一个错误响应对象，包含状态码和错误信息
         );
     }
 
-    public void serviceUnavailable(
-            HttpServletResponse response
-    ) throws IOException {
-        serviceUnavailable(AuditSupport.currentRequest(), response);
-    }
+
 
     public void serviceUnavailable(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (auditSupport != null) {

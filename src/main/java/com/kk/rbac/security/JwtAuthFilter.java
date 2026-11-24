@@ -85,11 +85,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {//校验客户端提交
             );
             return;
         }
+        String sid;
+        sid=claims.get("sid", String.class);
 
 //        检查Token版本及撤销状态
         UserAuthState state;
         try {
-            state = userAuthStateService.findForToken(userId, claims.getId());
+            state = userAuthStateService.findForToken(userId, claims.getId(),sid);
         } catch (DataAccessException | IllegalStateException exception) {
             logger.error("查询 Token 认证状态失败", exception);
             SecurityContextHolder.clearContext();
@@ -139,11 +141,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {//校验客户端提交
             return;
         }
 
-//        创建一个登录身份对象，包含用户ID、JWT ID和过期时间
+//        创建一个登录身份对象，包含用户ID、Jti和过期时间
         LoginPrincipal principal = new LoginPrincipal(
                 userId,
                 claims.getId(),
-                claims.getExpiration().toInstant()
+                claims.getExpiration().toInstant(),
+                claims.get("sid", String.class)
         );
 
 

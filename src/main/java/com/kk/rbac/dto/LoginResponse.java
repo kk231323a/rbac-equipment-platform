@@ -4,6 +4,7 @@ public record LoginResponse(
         Integer id,
         String account,
         String name,
-        String accessToken
+        String accessToken,
+        String refreshToken
 ) {
 }
