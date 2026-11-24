@@ -287,19 +287,23 @@ public class UserService {
                 .eq(SysUser::getPasswordHash, realPassword)
                 .set(SysUser::getPasswordHash, passwordEncoder.encode(request.getNewPassword()));
         Integer userId = userAlive.getId();
-//        修改前更改redis中状态
-        long targetVersion = userAuthStateService.markUpdating(userAlive) + 1;
 
-        transactionTemplate.executeWithoutResult(status -> {
-            // 在这里注册事务回调，确认回滚后才解除 updating。
-
+        long targetVersion = transactionTemplate.execute(transactionStatus -> {//开启一个事务
+            long nextVersion = userAuthStateService.markUpdating(userAlive) + 1;//修改前更改redis中状态
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {//把回调注册到当前 Spring 事务，等事务结束后由 Spring 调用
+                @Override
+                public void afterCompletion(int completionStatus) {
+                    if (completionStatus == STATUS_ROLLED_BACK) {//判断是否回滚，若回滚则删除标记
+                        userAuthStateService.markNotUpdating(userId);
+                    }
+                }
+            });
             if (sysUserMapper.update(null, update) != 1) {
                 throw new BusinessException(500, "修改密码失败");
             }
-
-            authStateSyncTaskMapper.save(userId, targetVersion);
+            authStateSyncTaskMapper.save(userId, nextVersion);
+            return nextVersion;//返回新的TokenVersion
         });
-
         userAuthStateService.incrJwtVersion(userId,targetVersion);//如果这段代码正常执行，则redis中的状态就能被正常修改，就不用入库，继续后面的删除库中存档
         //如果redis挂了，上面这段代码就会报错，下面这段删除就不会执行成功
         authStateSyncTaskMapper.delete(userId, targetVersion);

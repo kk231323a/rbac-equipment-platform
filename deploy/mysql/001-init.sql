@@ -111,6 +111,12 @@ CREATE TABLE `audit_log` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE `auth_state_sync_task` (
+  `user_id` INT NOT NULL,
+  `target_token_version` BIGINT NOT NULL,
+  PRIMARY KEY (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 START TRANSACTION;
 
 INSERT INTO sys_role (role_code, role_name) VALUES
@@ -128,6 +134,7 @@ INSERT INTO sys_permission (permission_code, permission_name) VALUES
   ('user:enable', '启用用户'),
   ('user:disable', '禁用用户'),
   ('user:read', '查看用户'),
+  ('user:create', '创建用户'),
   ('user:role:assign', '分配用户角色'),
   ('user:role:revoke', '撤销用户角色'),
   ('role:permission:assign', '授予角色权限'),
@@ -143,7 +150,7 @@ WHERE (r.role_code = 'borrower' AND p.permission_code IN (
    OR (r.role_code = 'admin' AND p.permission_code IN (
          'equipment:read', 'equipment:create', 'equipment:update',
          'borrow:approved', 'borrow:return', 'audit:read',
-         'user:enable', 'user:disable', 'user:read',
+          'user:enable', 'user:disable', 'user:read', 'user:create',
          'user:role:assign', 'user:role:revoke',
          'role:permission:assign', 'role:permission:revoke'
       ));

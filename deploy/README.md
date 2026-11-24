@@ -30,8 +30,8 @@
 
 只能选择其中一种方式：
 
-1. **空库演示部署**：执行 deploy/mysql/001-init.sql，生成 8 张表和最小演示数据。
-2. **迁移学习进度**：导入原数据库的 8 张核心表及其数据，参见第 10 节；不要再执行 001-init.sql。
+1. **空库演示部署**。执行 `deploy/mysql/001-init.sql`，生成 9 张表和最小演示数据。
+2. **迁移学习进度**。按第 10 节导出并导入当前版本的 9 张表，使用原库的数据作为目标环境的起点。
 
 当前 192.168.150.102 环境采用数据迁移，已经有申请和审计记录，不需要重新初始化。
 
@@ -42,9 +42,9 @@
 - 借用人：schema_test_01 / TestPassword-123。
 - 管理员：schema_admin_01 / TestPassword-123。
 
-两个密码分别生成 BCrypt 哈希。借用人角色有 equipment:read、borrow:create；管理员角色有设备查询/新增/修改、审批、确认归还、审计查看、用户/角色管理和角色权限授予/撤销权限，共 13 项。两项角色权限管理权限码为 role:permission:assign、role:permission:revoke，查询目录沿用 user:read。审批权限沿用现有字符串 borrow:approved。管理员角色默认没有 borrow:create；管理员同时需要借用功能时，可再为该用户分配 borrower 角色。
+两个密码分别生成 BCrypt 哈希。借用人角色有 `equipment:read` 和 `borrow:create`。管理员角色有 14 项权限，包含设备管理、审批、确认归还、审计查看、创建用户（`user:create`）、用户角色管理和角色权限授予及撤销（`role:permission:assign`、`role:permission:revoke`）。查询目录沿用 `user:read`，审批使用 `borrow:approved`。管理员需要借用功能时，可为该用户同时分配 `borrower` 角色。
 
-这是当前空库脚本的种子配置。已有数据库需另行登记两项新权限并关联 admin 角色，不能通过重新执行整个 001-init.sql 补数据；代码常量或学习 SQL 文件中存在相应语句，不代表运行中的数据库已完成授权。
+升级已有数据库时，先检查 `auth_state_sync_task` 表、所需权限码及其与 `admin` 的关联。缺项按初始化脚本中的对应结构或种子配置单独补齐。
 
 平台账号与 Linux 用户 kk、MySQL root、数据库应用用户 rbac_app 分别独立。演示账号仅由空库脚本创建；迁移数据不会自动重置原账号密码。
 
@@ -169,10 +169,11 @@ SELECT COUNT(*) AS role_permission_count FROM sys_role_permission;
 SELECT device_no, status FROM equipment;
 SELECT COUNT(*) AS request_count FROM borrow_request;
 SELECT COUNT(*) AS audit_count FROM audit_log;
+SELECT COUNT(*) AS auth_sync_task_count FROM auth_state_sync_task;
 exit
 ~~~
 
-当前版本空库导入、应用尚未启动时，预期有 8 张表、2 个账号、2 个角色、14 项权限、15 条角色权限关联、1 台 available 设备，申请和审计均为 0。后续登录会新增审计记录。这是本次静态核对的预期数据，新增权限后的脚本尚未重新执行空库导入。
+按当前脚本静态核对，空库导入后预期有 9 张表、2 个账号、2 个角色、15 项权限、16 条角色权限关联和 1 台 `available` 设备。应用启动前，借用申请、审计日志和改密同步任务均为 0 条。当前脚本待重新导入空库验证。
 
 ## 5. Redis
 
@@ -317,13 +318,13 @@ Invoke-RestMethod `
 
 健康检查应返回 HTTP 200 和 status=ok；未登录权限查询应返回 HTTP 401；正确登录应返回业务 code=200，携带 Token 后应查到借用人的权限。不要打印或提交完整登录响应和 Authorization 请求头。
 
-/api/health 是轻量存活接口，无法证明 MySQL、Redis 可用；实际登录再携带 Token 查询权限才覆盖数据库校验、Redis 撤销查询和权限加载。
+`/api/health` 只检查应用是否存活。实际登录并携带 Access Token 查询权限，可以覆盖 MySQL 凭据校验，以及 Redis 用户状态、会话、撤销记录和权限读取。登录响应包含 `accessToken` 和 `refreshToken`。调用 `POST /api/auth/refresh` 时，在 JSON 请求体中提交 `refreshToken`，成功后会收到新的一对 Token。
 
 浏览器再检查登录、设备查询、刷新 /equipment 和切换账号走主流程。借用人访问管理接口应被拒绝为 403。完整业务验收还需核对申请、设备和审计最终数据及重复/并发操作，不能只凭首页可访问宣布完成。
 
 ## 9. 已验证范围及排查
 
-截至 2026-11-19：
+截至 2026-11-24，按版本记录的验证情况如下。
 
 - 已有验证：Java 17 执行 mvn "-DskipTests" package 成功，前端 pnpm build 成功，JAR 未打入前端目录。
 - 开发者反馈：MySQL 迁移、Redis 认证 PING、后端构建与启动、登录及带 Token 权限查询、浏览器登录和刷新符合预期。
@@ -331,9 +332,9 @@ Invoke-RestMethod `
 - JDBC 时区参数已用当前驱动连接本机 MySQL 8.0.43 核验，数据库会话为 +08:00；不等于已检查虚拟机的所有运行连接。
 - 初始化脚本初始版本（12 项权限、13 条角色权限关联）曾在本机 MySQL 8.0.43 的独立空库 rbac_init_verify_20261119_670e5d，使用 mysql --batch --execute="source ..." 实际导入，退出码为 0。8 张表结构与业务库一致，种子行数、两个 BCrypt 密码及独立盐值、角色/用户权限集合均通过核对；非法外键和重复用户角色分别被错误码 1452、1062 拒绝。
 - 上述初始版本重复导入在首张已存在的表处返回 1050、进程退出码 1，停止后种子数据未变。验证前后原 rbac 的 8 张表数据指纹一致；原验证库保留供检查。
-- 本次为两项角色权限管理权限扩展种子数据，当前预期为 14 项权限、15 条关联；仅做静态核对，未重新执行空库导入。不能将初始版本的验证结果视为当前脚本已通过导入验证。
-- 本批新增角色/权限目录、角色权限查询及授予/撤销接口已完成源码检查，并于 2026-11-19 使用 Java 17 执行 mvn -o "-DskipTests" package，编译打包成功，测试跳过。尚未进行真实接口联调；运行中虚拟机是否包含本批接口需随新镜像交付另行确认。
-- 本轮未重建虚拟机数据卷，也未重跑全部业务、并发或 JUnit 测试；本机空库 SQL 验证不能代替全新 Docker 环境的完整部署验收。
+- 当前空库脚本已补充 `auth_state_sync_task` 和管理员的 `user:create`，9 张表、15 项权限、16 条关联为静态核对结果，待重新导入空库验证。
+- 角色和权限目录、角色权限查询及授予和撤销接口于 2026-11-19 完成源码检查，并使用 Java 17 编译打包通过。角色权限变更的回滚和缓存刷新已经过替身验证，最新版在虚拟机上的真实授权、撤权和改密补偿仍待验收。
+- 全新 Docker 环境的部署、双账号借用业务闭环和容器重启恢复仍待验收。
 
 常见排查：
 
@@ -348,7 +349,11 @@ Invoke-RestMethod `
 
 ## 10. 可选：迁移现有数据
 
-仅用于保留学习数据，不与空库种子叠加。先停止 IDEA 后端及其他对原库的写操作，MySQL 服务保持运行，目标 rbac 库应没有业务表。
+此流程用于把学习数据导入目标空库。只迁移 MySQL 并使用新 Redis 时，先暂停源环境的业务写入，保持原后端和 Redis 运行，等待改密定时任务处理完已有记录。补偿会读取源 Redis 中的认证状态，因此先确认 `auth_state_sync_task` 为 0 条，再停止原后端并导出。导出时保持源 MySQL 运行。部署后在目标环境重新登录。
+
+~~~sql
+SELECT COUNT(*) AS pending_auth_sync FROM auth_state_sync_task;
+~~~
 
 Windows PowerShell：
 
@@ -368,13 +373,13 @@ $rbacDumpFile = Join-Path $rbacMigrationDir 'rbac.sql'
     --skip-add-locks `
     "--result-file=$rbacDumpFile" `
     rbac equipment sys_user sys_role sys_permission sys_user_role `
-    sys_role_permission borrow_request audit_log
+    sys_role_permission borrow_request audit_log auth_state_sync_task
 if ($LASTEXITCODE -ne 0) { throw '导出失败' }
 
 scp $rbacDumpFile "kk@192.168.150.102:rbac-deploy/mysql/rbac.sql"
 ~~~
 
-提示处输入源数据库密码。--result-file 让 mysqldump 自行写文件，避免 PowerShell 重定向改变编码；--single-transaction 对这里的 InnoDB 表建立一致性快照，导出期间仍避免改表结构。只指定 8 张表，排除压测表。[mysqldump 文档](https://dev.mysql.com/doc/refman/8.0/en/mysqldump.html)
+提示处输入源数据库密码。`--result-file` 让 `mysqldump` 直接写文件，保留输出编码。`--single-transaction` 对 InnoDB 表建立一致性快照，导出期间避免修改表结构。命令明确列出当前版本的 9 张表。 [mysqldump 文档](https://dev.mysql.com/doc/refman/8.0/en/mysqldump.html)
 
 Ubuntu 导入：
 
@@ -387,5 +392,5 @@ sudo docker exec -it rbac-mysql \
   --execute="source /tmp/rbac.sql"
 ~~~
 
-核对迁移时源、目标 8 张表的行数和关键状态，不与空库演示行数比较。导出包含账号哈希、申请和审计等历史数据，保留在仓库外，不提交 Git。[SQL 格式导出文件的恢复](https://dev.mysql.com/doc/refman/8.0/en/reloading-sql-format-dumps.html)
+导入后对照源库，核对 9 张表的行数和关键状态。导出包含账号哈希、申请和审计等历史数据，保存在仓库外。 [SQL 格式导出文件的恢复](https://dev.mysql.com/doc/refman/8.0/en/reloading-sql-format-dumps.html)
 
