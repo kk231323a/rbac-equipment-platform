@@ -149,6 +149,10 @@ export const authApi = {
     method: 'POST', body: { account, password }, authenticated: false,
   }),
   logout: () => post('/api/auth/logout'),
+  // The endpoint verifies the old password. A rejection here must keep the current session.
+  changePassword: ({ account, oldPassword, newPassword }) => request('/api/user/password/change', {
+    method: 'POST', body: { account, oldPassword, newPassword }, authenticated: false,
+  }),
 }
 
 let permissionsRequest

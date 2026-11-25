@@ -43,8 +43,11 @@ async function login() {
 <template>
   <main class="login-page">
     <div class="login-brand">
+      <div class="login-brand-signature">
+        <span class="brand-mark"><Box aria-hidden="true" /></span>
+        <span>设备借用平台</span>
+      </div>
       <div class="login-brand-content">
-        <span class="brand-mark brand-mark--large"><Box aria-hidden="true" /></span>
         <p class="login-brand-title">设备借用<br />管理平台</p>
         <p class="login-brand-copy">设备台账、借用审批与操作审计</p>
       </div>
